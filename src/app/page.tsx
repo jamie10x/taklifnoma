@@ -196,18 +196,19 @@ export default function Home() {
           <div className="absolute bottom-12 right-12 w-24 h-24 border-b-4 border-r-4 border-gold/60"></div>
 
           <div className="px-24 flex flex-col items-center justify-center h-full">
-            <h2 className="text-bronze tracking-[0.4em] uppercase text-xl font-medium mb-12">
-              TOGETHER WITH THEIR FAMILIES
-            </h2>
-            <h1 className="text-8xl text-gold font-serif mb-16 text-center leading-tight">
-              Jamie & [Bride's Name]
-            </h1>
-            <div className="w-32 h-[2px] bg-gold/40 mx-auto mb-16"></div>
-            <p className="text-charcoal/80 text-3xl leading-relaxed font-light max-w-2xl text-center mb-16">
-              Qadrli mehmon! Biz o'z taqdirimizni birlashtirib, yangi hayotga qadam qo'ymoqdamiz.
+            <div className="w-32 h-[2px] bg-gold/40 mx-auto mb-12 mt-8"></div>
+            <p className="text-charcoal/80 text-2xl leading-relaxed font-light max-w-2xl text-center whitespace-pre-line mb-8">
+              <span className="tracking-[0.3em] font-medium text-bronze text-xl block mb-6">ASSALOMU ALAYKUM !</span>
+              QADRLI VA AZIZ MEHMONIMIZ !{"\n"}SIZNI
             </p>
-            <p className="text-4xl font-serif text-charcoal mb-4">Saturday, September 24th</p>
-            <p className="text-2xl text-charcoal/80 font-light mb-16">at Four O'Clock in the afternoon</p>
+            <h1 className="text-5xl text-gold font-serif mb-8 text-center leading-tight">
+              JAMSHIDBEK & GULSHODA
+            </h1>
+            <p className="text-charcoal/80 text-2xl leading-relaxed font-light max-w-2xl text-center mb-12 whitespace-pre-line">
+              FARZANDLARIMIZNING NIKOH TO‘YLARI MUNOSABATI BILAN BO‘LADIGAN "VISOL OQSHOMI" GA TAKLIF ETAMIZ.{"\n\n"}HURMAT VA EHTIROM BILAN,{"\n"}BOYNAZAROVLAR oilasi.
+            </p>
+            <p className="text-3xl font-medium tracking-wide text-charcoal/80 mb-2">06.06.2026</p>
+            <p className="text-2xl text-charcoal/70 font-light mb-16">Vaqti aniqlanmoqda</p>
 
             {(firstName || lastName) && (
               <div className="mt-8 pt-12 border-t-2 border-gold/20 w-3/4 flex flex-col items-center">
@@ -259,7 +260,7 @@ export default function Home() {
                 className="absolute w-[85%] h-[85%] bg-white rounded shadow-lg z-10 p-2 flex items-center justify-center"
               >
                 <div className="w-full h-full border border-gold/40 flex flex-col items-center justify-center p-4 text-center space-y-3 bg-cream/30">
-                  <h2 className="text-bronze text-[10px] sm:text-xs tracking-[0.3em] uppercase">Together with their families</h2>
+                  <h2 className="text-bronze text-[10px] sm:text-xs tracking-[0.3em] uppercase">Visol Oqshomi</h2>
                   <h1 className="text-gold font-serif text-3xl sm:text-4xl">J&G</h1>
                 </div>
               </motion.div>
@@ -330,7 +331,7 @@ export default function Home() {
               animate={{ opacity: openingStep >= 1 ? 0 : 1 }}
               className="mt-12 text-charcoal/50 tracking-[0.4em] text-xs uppercase animate-pulse font-medium"
             >
-              Tap to open
+              Ochish uchun bosing
             </motion.p>
           </motion.div>
         ) : (
@@ -348,19 +349,24 @@ export default function Home() {
               <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-gold/60 rounded-bl-lg"></div>
               <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-gold/60 rounded-br-lg"></div>
 
-              <div className="space-y-4">
-                <h2 className="text-bronze tracking-[0.3em] uppercase text-xs sm:text-sm font-medium">
-                  TOGETHER WITH THEIR FAMILIES
-                </h2>
-                <h1 className="text-5xl sm:text-7xl text-gold font-serif pt-6 pb-4 drop-shadow-sm leading-tight">
-                  Jamie & [Bride's Name]
-                </h1>
-              </div>
-
-              <div className="py-6 sm:py-10">
+              <div className="pt-4 pb-8 sm:pb-12">
                 <div className="w-24 h-[1px] bg-gold/40 mx-auto mb-8 sm:mb-12"></div>
-                <p className="text-charcoal/80 text-base sm:text-lg leading-relaxed font-light max-w-xl mx-auto">
-                  Qadrli mehmon! Biz o'z taqdirimizni birlashtirib, yangi hayotga qadam qo'ymoqdamiz. Biz uchun eng muhim bo'lgan ushbu kunda sizni o'zimizning shaxsiy bayramimizda ko'rishdan bag'oyat xursand bo'lamiz.
+                <p className="text-charcoal/80 text-base sm:text-lg leading-relaxed font-light max-w-xl mx-auto whitespace-pre-line">
+                  <span className="text-bronze tracking-[0.3em] uppercase text-xs sm:text-sm font-medium block mb-8">
+                    ASSALOMU ALAYKUM !
+                  </span>
+                  QADRLI VA AZIZ MEHMONIMIZ !{"\n"}
+                  SIZNI
+                </p>
+                
+                <h1 className="text-3xl sm:text-4xl text-gold font-serif py-6 sm:py-8 drop-shadow-sm leading-tight">
+                  JAMSHIDBEK & GULSHODA
+                </h1>
+                
+                <p className="text-charcoal/80 text-base sm:text-lg leading-relaxed font-light max-w-xl mx-auto whitespace-pre-line">
+                  FARZANDLARIMIZNING NIKOH TO‘YLARI MUNOSABATI BILAN BO‘LADIGAN “VISOL OQSHOMI” GA TAKLIF ETAMIZ.{"\n\n"}
+                  HURMAT VA EHTIROM BILAN,{"\n"}
+                  BOYNAZAROVLAR oilasi.
                 </p>
                 <div className="w-24 h-[1px] bg-gold/40 mx-auto mt-8 sm:mt-12"></div>
               </div>
@@ -368,20 +374,20 @@ export default function Home() {
               <div className="space-y-6 pb-6">
                 {/* Event Details */}
                 <div className="space-y-3">
-                  <p className="text-xl sm:text-2xl font-serif text-charcoal">
-                    [Insert Date]
+                  <p className="text-xl sm:text-2xl font-medium tracking-wide text-charcoal/80">
+                    06.06.2026
                   </p>
-                  <p className="text-charcoal/80 font-medium tracking-wide">
-                    18:00 <span className="font-light italic text-sm">(Kechki bazm)</span>
+                  <p className="text-charcoal/70 font-light">
+                    Vaqti aniqlanmoqda
                   </p>
-                  <div className="pt-2 space-y-1">
-                    <p className="text-lg font-medium text-charcoal">The Grand Palace</p>
-                    <p className="text-charcoal/70 font-light text-sm sm:text-base">Namangan, Uzbekistan</p>
+                  <div className="pt-4 space-y-1">
+                    <p className="text-lg font-medium text-charcoal/90">Norin kapa MAXMUDJON OTA ZAMIN to'yxonasi</p>
+                    <p className="text-charcoal/70 font-light text-sm sm:text-base">Namangan viloyati, Norin tumani</p>
                   </div>
 
                   {/* Minimalist Map Placeholder */}
                   <div className="mt-6 w-full max-w-sm mx-auto h-32 border border-gold/20 bg-cream/50 rounded flex items-center justify-center">
-                    <p className="text-gold/60 text-xs tracking-widest uppercase font-medium">Map Placeholder</p>
+                    <p className="text-gold/60 text-xs tracking-widest uppercase font-medium text-center px-4">Xarita tez orada qo'shiladi</p>
                   </div>
                 </div>
 
@@ -402,13 +408,13 @@ export default function Home() {
                         onClick={handleShare}
                         className="w-full bg-gold hover:bg-bronze text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
                       >
-                        Share Invitation
+                        Taklifnomani Ulashish
                       </button>
                       <button
                         onClick={handleDownload}
                         className="w-full bg-transparent border border-gold text-gold hover:bg-gold hover:text-white px-10 py-4 rounded-full transition-all duration-300 tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
                       >
-                        Download Files
+                        Yuklab Olish
                       </button>
                     </div>
                   </div>
@@ -420,7 +426,7 @@ export default function Home() {
                       <div className="flex flex-col text-left">
                         <input
                           type="text"
-                          placeholder="First Name"
+                          placeholder="Ismingiz"
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
                           required
@@ -430,7 +436,7 @@ export default function Home() {
                       <div className="flex flex-col text-left">
                         <input
                           type="text"
-                          placeholder="Last Name"
+                          placeholder="Familiyangiz"
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
                           required
@@ -479,7 +485,7 @@ export default function Home() {
                       {isSubmitting ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                       ) : (
-                        "RSVP & Get Invitation"
+                        "Tasdiqlash va Olish"
                       )}
                     </button>
                   </form>
@@ -508,7 +514,7 @@ export default function Home() {
               <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl">🥂</span>
               </div>
-              <h3 className="text-2xl font-serif text-gold mb-2">Thank You!</h3>
+              <h3 className="text-2xl font-serif text-gold mb-2">Rahmat!</h3>
               <p className="text-charcoal/80 mb-8 font-light">
                 Javobingiz qabul qilindi. Sizni kutib qolamiz!
               </p>

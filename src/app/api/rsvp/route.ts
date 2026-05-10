@@ -6,9 +6,9 @@ import path from 'path';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { firstName, lastName, attendance, isRegenerate } = body;
+    const { firstName, attendance, isRegenerate } = body;
 
-    if (!firstName || !lastName || !attendance) {
+    if (!firstName || !attendance) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -18,9 +18,8 @@ export async function POST(req: NextRequest) {
       const chatId = process.env.CHAT_ID;
 
       if (botToken && chatId) {
-        const message = `🎉 Yangi RSVP!\n\nIsm: ${firstName} ${lastName}\nQatnashish: ${attendance === 'yes' ? 'Ha, albatta ✅' : 'Yoq, afsuski ❌'}`;
+        const message = `🎉 Yangi RSVP!\n\nIsm: ${firstName}\nQatnashish: ${attendance === 'yes' ? 'Ha, albatta ✅' : 'Yoq, afsuski ❌'}`;
         
-        // Await the fetch call to ensure it fires correctly in serverless environments
         try {
           await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
@@ -53,8 +52,8 @@ export async function POST(req: NextRequest) {
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize();
 
-        const text = `${firstName} ${lastName}`;
-        const fontSize = 36; // Slightly larger for an elegant serif font
+        const text = firstName;
+        const fontSize = 36;
         const textWidth = helveticaFont.widthOfTextAtSize(text, fontSize);
 
         firstPage.drawText(text, {
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
           y: height / 2,
           size: fontSize,
           font: helveticaFont,
-          color: rgb(0.2, 0.2, 0.2), // Dark charcoal
+          color: rgb(0.2, 0.2, 0.2),
         });
 
         const pdfBytes = await pdfDoc.save();
@@ -71,7 +70,7 @@ export async function POST(req: NextRequest) {
           status: 200,
           headers: {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="taklifnoma-${firstName}-${lastName}.pdf"`,
+            'Content-Disposition': `attachment; filename="taklifnoma-${firstName}.pdf"`,
           },
         });
       } catch (pdfError) {

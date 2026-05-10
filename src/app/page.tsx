@@ -5,10 +5,65 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-mo
 import { GlassCard } from "@/components/GlassCard";
 import { toPng } from "html-to-image";
 
+function CountdownTimer({ targetDate }: { targetDate: string }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const calc = () => {
+      const diff = new Date(targetDate).getTime() - Date.now();
+      if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      return {
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff % 86400000) / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000),
+      };
+    };
+    setTimeLeft(calc());
+    const id = setInterval(() => setTimeLeft(calc()), 1000);
+    return () => clearInterval(id);
+  }, [targetDate]);
+
+  if (!mounted) return null;
+
+  const units = [
+    { label: "kun", value: timeLeft.days },
+    { label: "soat", value: timeLeft.hours },
+    { label: "daqiqa", value: timeLeft.minutes },
+    { label: "soniya", value: timeLeft.seconds },
+  ];
+
+  return (
+    <div className="flex items-center justify-center gap-3 sm:gap-4 py-2">
+      {units.map(({ label, value }, i) => (
+        <div key={label} className="flex items-center">
+          <div className="flex flex-col items-center">
+            <motion.div
+              key={value}
+              initial={{ y: -8, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.25 }}
+              className="w-14 sm:w-16 h-14 sm:h-16 bg-gold/10 border border-gold/30 rounded-xl flex items-center justify-center"
+            >
+              <span className="text-2xl sm:text-3xl font-serif text-gold font-medium">
+                {String(value).padStart(2, "0")}
+              </span>
+            </motion.div>
+            <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-charcoal/50 mt-1.5">{label}</span>
+          </div>
+          {i < 3 && <span className="text-gold/50 text-xl font-light mx-0.5 mb-4">:</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [attendance, setAttendance] = useState<"yes" | "no" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -58,9 +113,7 @@ export default function Home() {
     if (stored === 'true') {
       setHasRsvpd(true);
       const storedFirstName = localStorage.getItem('rsvpd_firstName');
-      const storedLastName = localStorage.getItem('rsvpd_lastName');
       if (storedFirstName) setFirstName(storedFirstName);
-      if (storedLastName) setLastName(storedLastName);
     }
   }, []);
 
@@ -72,11 +125,11 @@ export default function Home() {
     }
 
     let currentPdf = pdfBlob;
-    if (!currentPdf && firstName && lastName) {
+    if (!currentPdf && firstName) {
       const response = await fetch('/api/rsvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, attendance: 'yes', isRegenerate: true }),
+        body: JSON.stringify({ firstName, attendance: 'yes', isRegenerate: true }),
       });
       if (response.ok) {
         currentPdf = await response.blob();
@@ -122,7 +175,7 @@ export default function Home() {
       if (currentPng) {
         const a = document.createElement('a');
         a.href = currentPng;
-        a.download = `Taklifnoma_${firstName}_${lastName}.png`;
+        a.download = `Taklifnoma_${firstName}.png`;
         a.click();
       }
 
@@ -130,7 +183,7 @@ export default function Home() {
         const url = window.URL.createObjectURL(currentPdf);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Taklifnoma_${firstName}_${lastName}.pdf`;
+        a.download = `Taklifnoma_${firstName}.pdf`;
         a.click();
         window.URL.revokeObjectURL(url);
       }
@@ -149,7 +202,7 @@ export default function Home() {
       const response = await fetch('/api/rsvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, attendance }),
+        body: JSON.stringify({ firstName, attendance }),
       });
 
       if (!response.ok) {
@@ -168,7 +221,6 @@ export default function Home() {
 
       localStorage.setItem('has_rsvpd', 'true');
       localStorage.setItem('rsvpd_firstName', firstName);
-      localStorage.setItem('rsvpd_lastName', lastName);
 
       setHasRsvpd(true);
       setShowModal(true);
@@ -199,21 +251,24 @@ export default function Home() {
             <div className="w-32 h-[2px] bg-gold/40 mx-auto mb-12 mt-8"></div>
             <p className="text-charcoal/80 text-2xl leading-relaxed font-light max-w-2xl text-center whitespace-pre-line mb-8">
               <span className="tracking-[0.3em] font-medium text-bronze text-xl block mb-6">ASSALOMU ALAYKUM !</span>
-              QADRLI VA AZIZ MEHMONIMIZ !{"\n"}SIZNI
+              QADRLI VA AZIZ MEHMONIMIZ !{"\n"}
+              GO&apos;ZAL HAYOT OSTONASIDA POK NIYATLAR, EZGU ORZULAR VA SAMIMIY TILAKLAR ILA HAYOTIMIZNI BOSHLAMOQCHIMIZ !{"\n"}
             </p>
-            <h1 className="text-5xl text-gold font-serif mb-8 text-center leading-tight">
-              JAMSHIDBEK & GULSHODA
-            </h1>
+
+            <div className="text-center mb-8">
+              <p className="text-3xl text-gold font-serif leading-tight">JAMSHIDBEK &amp;</p>
+              <p className="text-6xl text-gold font-serif leading-tight">GULSHODA</p>
+            </div>
             <p className="text-charcoal/80 text-2xl leading-relaxed font-light max-w-2xl text-center mb-12 whitespace-pre-line">
-              FARZANDLARIMIZNING NIKOH TO‘YLARI MUNOSABATI BILAN BO‘LADIGAN "VISOL OQSHOMI" GA TAKLIF ETAMIZ.{"\n\n"}HURMAT VA EHTIROM BILAN,{"\n"}BOYNAZAROVLAR oilasi.
+              LARNING NIKOH TO&apos;YLARI MUNOSABATI BILAN 6-7 IYUN KUNLARI BO&apos;LIB O&apos;TADIGAN &quot;QIZ BAZMIGA&quot; HAMDA UNUTILMAS NIKOH VA BAXT KECHAMIZGA TAKLIF ETAMIZ.{"\n\n"}HURMAT VA EHTIROM BILAN
             </p>
             <p className="text-3xl font-medium tracking-wide text-charcoal/80 mb-2">06.06.2026</p>
             <p className="text-2xl text-charcoal/70 font-light mb-16">Vaqti aniqlanmoqda</p>
 
-            {(firstName || lastName) && (
+            {(firstName) && (
               <div className="mt-8 pt-12 border-t-2 border-gold/20 w-3/4 flex flex-col items-center">
                 <p className="text-charcoal/60 text-xl tracking-widest uppercase mb-6">Maxsus Mehmon</p>
-                <p className="text-5xl font-serif text-gold">{firstName} {lastName}</p>
+                <p className="text-5xl font-serif text-gold">{firstName}</p>
               </div>
             )}
           </div>
@@ -356,43 +411,57 @@ export default function Home() {
                     ASSALOMU ALAYKUM !
                   </span>
                   QADRLI VA AZIZ MEHMONIMIZ !{"\n"}
-                  SIZNI
+                  GO&apos;ZAL HAYOT OSTONASIDA POK NIYATLAR, EZGU ORZULAR VA SAMIMIY TILAKLAR ILA HAYOTIMIZNI BOSHLAMOQCHIMIZ !
                 </p>
-                
-                <h1 className="text-3xl sm:text-4xl text-gold font-serif py-6 sm:py-8 drop-shadow-sm leading-tight">
-                  JAMSHIDBEK & GULSHODA
-                </h1>
-                
+
+                {/* Couple Names */}
+                <div className="text-center py-4 sm:py-6">
+                  <h1 className="text-3xl sm:text-4xl text-gold font-serif drop-shadow-sm leading-tight">
+                    JAMSHIDBEK &amp; GULSHODA
+                  </h1>
+                </div>
+
                 <p className="text-charcoal/80 text-base sm:text-lg leading-relaxed font-light max-w-xl mx-auto whitespace-pre-line">
-                  FARZANDLARIMIZNING NIKOH TO‘YLARI MUNOSABATI BILAN BO‘LADIGAN “VISOL OQSHOMI” GA TAKLIF ETAMIZ.{"\n\n"}
-                  HURMAT VA EHTIROM BILAN,{"\n"}
-                  BOYNAZAROVLAR oilasi.
+                  LARNING NIKOH TO&apos;YLARI MUNOSABATI BILAN 6-7 IYUN KUNLARI BO&apos;LIB O&apos;TADIGAN &quot;QIZ BAZMIGA&quot; HAMDA UNUTILMAS NIKOH VA BAXT KECHAMIZGA TAKLIF ETAMIZ.{"\n\n"}
+                  HURMAT VA EHTIROM BILAN
                 </p>
+
+                {/* Signature */}
+                <div className="mt-6">
+                  <p className="text-4xl sm:text-5xl text-gold font-serif drop-shadow-sm leading-tight">GULSHODA</p>
+                </div>
+
                 <div className="w-24 h-[1px] bg-gold/40 mx-auto mt-8 sm:mt-12"></div>
               </div>
 
-              <div className="space-y-6 pb-6">
-                {/* Event Details */}
-                <div className="space-y-3">
-                  <p className="text-xl sm:text-2xl font-medium tracking-wide text-charcoal/80">
-                    06.06.2026
-                  </p>
-                  <p className="text-charcoal/70 font-light">
-                    Vaqti aniqlanmoqda
-                  </p>
-                  <div className="pt-4 space-y-1">
-                    <p className="text-lg font-medium text-charcoal/90">Norin kapa MAXMUDJON OTA ZAMIN to'yxonasi</p>
-                    <p className="text-charcoal/70 font-light text-sm sm:text-base">Namangan viloyati, Norin tumani</p>
-                  </div>
+              {/* Event Schedule */}
+              <div className="space-y-8 pb-6">
 
-                  {/* Minimalist Map Placeholder */}
-                  <div className="mt-6 w-full max-w-sm mx-auto h-32 border border-gold/20 bg-cream/50 rounded flex items-center justify-center">
-                    <p className="text-gold/60 text-xs tracking-widest uppercase font-medium text-center px-4">Xarita tez orada qo'shiladi</p>
+                {/* Qiz Bazmi */}
+                <div className="space-y-2">
+                  <p className="text-xs tracking-[0.3em] uppercase text-bronze font-medium">Qiz Bazmi</p>
+                  <p className="text-3xl sm:text-4xl font-serif text-charcoal/90 font-medium tracking-wide">13:00</p>
+                  <p className="text-lg sm:text-xl font-medium text-charcoal/80">06.06.2026</p>
+                  <div className="pt-2 space-y-1">
+                    <p className="text-base font-medium text-charcoal/90">Norin kapa MAXMUDJON OTA ZAMIN to&apos;yxonasi</p>
+                    <p className="text-charcoal/70 font-light text-sm sm:text-base">Namangan viloyati, Norin tumani</p>
                   </div>
                 </div>
 
-                <div className="w-24 h-[1px] bg-gold/40 mx-auto my-8 sm:my-10"></div>
+                {/* Countdown Timer */}
+                <CountdownTimer targetDate="2026-06-06T13:00:00" />
 
+                <div className="w-24 h-[1px] bg-gold/40 mx-auto my-4"></div>
+
+                {/* Map Placeholder */}
+                <div className="w-full max-w-sm mx-auto h-32 border border-gold/20 bg-cream/50 rounded flex items-center justify-center">
+                  <p className="text-gold/60 text-xs tracking-widest uppercase font-medium text-center px-4">Xarita tez orada qo&apos;shiladi</p>
+                </div>
+              </div>
+
+              <div className="w-24 h-[1px] bg-gold/40 mx-auto my-8 sm:my-10"></div>
+
+              <div className="space-y-6 pb-6">
                 {hasRsvpd ? (
                   <div className="w-full max-w-md mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -420,29 +489,17 @@ export default function Home() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-8">
-                    <h3 className="text-xl font-serif text-charcoal text-center tracking-wide">RSVP</h3>
+                    <p className="text-charcoal/70 text-sm sm:text-base font-light leading-relaxed text-center tracking-wide whitespace-pre-line">HAYOTIMIZNING BU BAXTIYOR KUNIDA{'\n'}BIZ BILAN BO'LISHINGIZDAN UMIDVORMIZ.</p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div className="flex flex-col text-left">
-                        <input
-                          type="text"
-                          placeholder="Ismingiz"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          required
-                          className="w-full bg-transparent border-0 border-b border-gold/50 focus:border-gold focus:ring-0 px-0 py-2 text-charcoal placeholder-charcoal/40 outline-none transition-colors"
-                        />
-                      </div>
-                      <div className="flex flex-col text-left">
-                        <input
-                          type="text"
-                          placeholder="Familiyangiz"
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          required
-                          className="w-full bg-transparent border-0 border-b border-gold/50 focus:border-gold focus:ring-0 px-0 py-2 text-charcoal placeholder-charcoal/40 outline-none transition-colors"
-                        />
-                      </div>
+                    <div className="w-full">
+                      <input
+                        type="text"
+                        placeholder="Ismingiz"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        required
+                        className="w-full bg-transparent border-0 border-b border-gold/50 focus:border-gold focus:ring-0 px-0 py-2 text-charcoal placeholder-charcoal/40 outline-none transition-colors"
+                      />
                     </div>
 
                     <div className="space-y-4 pt-2 text-left w-full mx-auto max-w-xs">

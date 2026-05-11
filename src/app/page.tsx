@@ -238,37 +238,23 @@ export default function Home() {
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-gold/5 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-bronze/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* Visually hidden PNG template */}
+      {/* Visually hidden PNG template generator */}
       <div className="overflow-hidden absolute top-[-9999px] left-[-9999px] z-[-999]">
-        <div ref={pngRef} className="w-[800px] h-[1200px] bg-cream flex flex-col items-center justify-center relative">
-          <div className="absolute inset-8 border-4 border-gold/30"></div>
-          <div className="absolute top-12 left-12 w-24 h-24 border-t-4 border-l-4 border-gold/60"></div>
-          <div className="absolute top-12 right-12 w-24 h-24 border-t-4 border-r-4 border-gold/60"></div>
-          <div className="absolute bottom-12 left-12 w-24 h-24 border-b-4 border-l-4 border-gold/60"></div>
-          <div className="absolute bottom-12 right-12 w-24 h-24 border-b-4 border-r-4 border-gold/60"></div>
-
-          <div className="px-24 flex flex-col items-center justify-center h-full">
-            <div className="w-32 h-[2px] bg-gold/40 mx-auto mb-12 mt-8"></div>
-            <p className="text-charcoal/80 text-2xl leading-relaxed font-light max-w-2xl text-center whitespace-pre-line mb-8">
-              <span className="tracking-[0.3em] font-medium text-bronze text-xl block mb-6">ASSALOMU ALAYKUM !</span>
-              QADRLI VA AZIZ MEHMONIMIZ !{"\n"}
-              GO&apos;ZAL HAYOT OSTONASIDA POK NIYATLAR, EZGU ORZULAR VA SAMIMIY TILAKLAR ILA HAYOTIMIZNI BOSHLAMOQCHIMIZ !{"\n"}
-            </p>
-
-            <div className="text-center mb-8">
-              <p className="text-3xl text-gold font-serif leading-tight">JAMSHIDBEK &amp;</p>
-              <p className="text-6xl text-gold font-serif leading-tight">GULSHODA</p>
-            </div>
-            <p className="text-charcoal/80 text-2xl leading-relaxed font-light max-w-2xl text-center mb-12 whitespace-pre-line">
-              LARNING NIKOH TO&apos;YLARI MUNOSABATI BILAN 6-7 IYUN KUNLARI BO&apos;LIB O&apos;TADIGAN &quot;QIZ BAZMIGA&quot; HAMDA UNUTILMAS NIKOH VA BAXT KECHAMIZGA TAKLIF ETAMIZ.{"\n\n"}HURMAT VA EHTIROM BILAN
-            </p>
-            <p className="text-3xl font-medium tracking-wide text-charcoal/80 mb-2">06.06.2026</p>
-            <p className="text-2xl text-charcoal/70 font-light mb-16">Vaqti aniqlanmoqda</p>
-
+        <div ref={pngRef} className="w-[800px] h-[1131px] bg-white flex flex-col items-center justify-center relative shadow-2xl">
+          {/* Use the provided JPEG as background */}
+          <img 
+            src="/taklifnoma.jpg" 
+            alt="Template" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          
+          <div className="relative z-10 w-full h-full flex flex-col items-center">
+            {/* Guest Name positioning - adjusted to match the line on the template */}
             {(firstName) && (
-              <div className="mt-8 pt-12 border-t-2 border-gold/20 w-3/4 flex flex-col items-center">
-                <p className="text-charcoal/60 text-xl tracking-widest uppercase mb-6">Maxsus Mehmon</p>
-                <p className="text-5xl font-serif text-gold">{firstName}</p>
+              <div className="absolute top-[65.5%] w-full flex flex-col items-center">
+                <p className="text-[28px] font-serif font-bold italic text-[#6B111A] leading-none">
+                  {firstName}
+                </p>
               </div>
             )}
           </div>
@@ -404,33 +390,37 @@ export default function Home() {
               <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-gold/60 rounded-bl-lg"></div>
               <div className="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-gold/60 rounded-br-lg"></div>
 
-              <div className="pt-4 pb-8 sm:pb-12">
+                <div className="pt-4 pb-8 sm:pb-12">
                 <div className="w-24 h-[1px] bg-gold/40 mx-auto mb-8 sm:mb-12"></div>
+                
+                {/* Bismillah or Arabic text from template if needed, but keeping it minimalist */}
+                <p className="text-[#6B111A] text-[10px] tracking-[0.4em] mb-6 uppercase font-bold">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+
                 <p className="text-charcoal/80 text-base sm:text-lg leading-relaxed font-light max-w-xl mx-auto whitespace-pre-line">
-                  <span className="text-bronze tracking-[0.3em] uppercase text-xs sm:text-sm font-medium block mb-8">
+                  <span className="text-[#6B111A] tracking-[0.3em] uppercase text-xs sm:text-sm font-bold block mb-8">
                     ASSALOMU ALAYKUM !
                   </span>
                   QADRLI VA AZIZ MEHMONIMIZ !{"\n"}
                   GO&apos;ZAL HAYOT OSTONASIDA POK NIYATLAR, EZGU ORZULAR VA SAMIMIY TILAKLAR ILA HAYOTIMIZNI BOSHLAMOQCHIMIZ !
                 </p>
-
+ 
                 {/* Couple Names */}
-                <div className="text-center py-4 sm:py-6">
-                  <h1 className="text-3xl sm:text-4xl text-gold font-serif drop-shadow-sm leading-tight">
-                    JAMSHIDBEK &amp; GULSHODA
+                <div className="text-center py-6 sm:py-10">
+                  <h1 className="text-3xl sm:text-5xl text-[#6B111A] font-serif tracking-tighter leading-tight uppercase font-bold italic">
+                    JAMSHIDBEK <br/> & <br/> GULSHODA
                   </h1>
                 </div>
-
-                <p className="text-charcoal/80 text-base sm:text-lg leading-relaxed font-light max-w-xl mx-auto whitespace-pre-line">
+ 
+                <p className="text-charcoal/80 text-base sm:text-lg leading-relaxed font-light max-w-xl mx-auto whitespace-pre-line italic">
                   LARNING NIKOH TO&apos;YLARI MUNOSABATI BILAN 6-7 IYUN KUNLARI BO&apos;LIB O&apos;TADIGAN &quot;QIZ BAZMIGA&quot; HAMDA UNUTILMAS NIKOH VA BAXT KECHAMIZGA TAKLIF ETAMIZ.{"\n\n"}
                   HURMAT VA EHTIROM BILAN
                 </p>
-
+ 
                 {/* Signature */}
-                <div className="mt-6">
-                  <p className="text-4xl sm:text-5xl text-gold font-serif drop-shadow-sm leading-tight">GULSHODA</p>
+                <div className="mt-8">
+                  <p className="text-3xl sm:text-4xl text-[#6B111A] font-serif font-bold italic">Jamshidbek & Gulshoda</p>
                 </div>
-
+ 
                 <div className="w-24 h-[1px] bg-gold/40 mx-auto mt-8 sm:mt-12"></div>
               </div>
 

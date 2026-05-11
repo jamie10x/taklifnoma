@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         const message = `🎉 Yangi RSVP!\n\nIsm: ${firstName}\nQatnashish: ${attendance === 'yes' ? 'Ha, albatta ✅' : 'Yoq, afsuski ❌'}`;
         
         try {
-          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -31,8 +31,13 @@ export async function POST(req: NextRequest) {
               text: message,
             }),
           });
+          
+          if (!tgRes.ok) {
+            const errorData = await tgRes.json();
+            console.error('Telegram API error details:', errorData);
+          }
         } catch (err) {
-          console.error('Telegram API error:', err);
+          console.error('Telegram fetch failed:', err);
         }
       } else {
         console.warn('Telegram credentials not found in environment variables.');
@@ -42,26 +47,26 @@ export async function POST(req: NextRequest) {
     // 2. Generate PDF if attending
     if (attendance === 'yes') {
       try {
-        const templatePath = path.join(process.cwd(), 'public', 'template.pdf');
+        const templatePath = path.join(process.cwd(), 'public', 'taklifnoma.pdf');
         const existingPdfBytes = await readFile(templatePath);
 
         const pdfDoc = await PDFDocument.load(existingPdfBytes);
-        const helveticaFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
+        const timesBoldItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
 
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize();
 
         const text = firstName;
-        const fontSize = 36;
-        const textWidth = helveticaFont.widthOfTextAtSize(text, fontSize);
+        const fontSize = 11; // Slightly larger for better readability
+        const textWidth = timesBoldItalic.widthOfTextAtSize(text, fontSize);
 
         firstPage.drawText(text, {
           x: width / 2 - textWidth / 2,
-          y: height / 2,
+          y: height * 0.34, // Moved significantly higher to avoid overlapping the line/text below
           size: fontSize,
-          font: helveticaFont,
-          color: rgb(0.2, 0.2, 0.2),
+          font: timesBoldItalic,
+          color: rgb(107/255, 17/255, 26/255),
         });
 
         const pdfBytes = await pdfDoc.save();

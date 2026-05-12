@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
         const { width, height } = firstPage.getSize();
 
         const fontSize = 10; // Reduced from 11 as requested
-        const textWidth = timesBoldItalic.widthOfTextAtSize(text, fontSize);
+        const textWidth = timesBoldItalic.widthOfTextAtSize(firstName, fontSize);
 
-        firstPage.drawText(text, {
+        firstPage.drawText(firstName, {
           x: width / 2 - textWidth / 2,
           y: height * 0.34, // Moved significantly higher to avoid overlapping the line/text below
           size: fontSize,

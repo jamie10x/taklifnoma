@@ -120,7 +120,11 @@ export default function Home() {
   const getAssets = async () => {
     let currentPng = pngDataUrl;
     if (!currentPng && pngRef.current) {
-      currentPng = await toPng(pngRef.current, { cacheBust: true, quality: 1.0 });
+      currentPng = await toPng(pngRef.current, { 
+        cacheBust: true, 
+        quality: 1.0,
+        pixelRatio: 3, // Increase pixel ratio for higher resolution/sharpness
+      });
       setPngDataUrl(currentPng);
     }
 
@@ -170,14 +174,7 @@ export default function Home() {
 
   const handleDownload = async () => {
     try {
-      const { currentPng, currentPdf } = await getAssets();
-
-      if (currentPng) {
-        const a = document.createElement('a');
-        a.href = currentPng;
-        a.download = `Taklifnoma_${firstName}.png`;
-        a.click();
-      }
+      const { currentPdf } = await getAssets();
 
       if (currentPdf) {
         const url = window.URL.createObjectURL(currentPdf);
@@ -186,6 +183,15 @@ export default function Home() {
         a.download = `Taklifnoma_${firstName}.pdf`;
         a.click();
         window.URL.revokeObjectURL(url);
+      } else {
+        // Fallback to PNG if PDF is not available for some reason
+        const { currentPng } = await getAssets();
+        if (currentPng) {
+          const a = document.createElement('a');
+          a.href = currentPng;
+          a.download = `Taklifnoma_${firstName}.png`;
+          a.click();
+        }
       }
     } catch (err) {
       console.error('Error downloading:', err);
@@ -214,7 +220,11 @@ export default function Home() {
         setPdfBlob(blob);
 
         if (pngRef.current) {
-          const dataUrl = await toPng(pngRef.current, { cacheBust: true, quality: 1.0 });
+          const dataUrl = await toPng(pngRef.current, { 
+            cacheBust: true, 
+            quality: 1.0,
+            pixelRatio: 3, // Increase pixel ratio for higher resolution/sharpness
+          });
           setPngDataUrl(dataUrl);
         }
       }
@@ -251,7 +261,7 @@ export default function Home() {
           <div className="relative z-10 w-full h-full flex flex-col items-center">
             {/* Guest Name positioning - adjusted to match the line on the template */}
             {(firstName) && (
-              <div className="absolute top-[65.5%] w-full flex flex-col items-center">
+              <div className="absolute top-[67.5%] w-full flex flex-col items-center">
                 <p className="text-[28px] font-serif font-bold italic text-[#6B111A] leading-none">
                   {firstName}
                 </p>
@@ -432,6 +442,13 @@ export default function Home() {
                   <p className="text-xs tracking-[0.3em] uppercase text-bronze font-medium">Qiz Bazmi</p>
                   <p className="text-3xl sm:text-4xl font-serif text-charcoal/90 font-medium tracking-wide">13:00</p>
                   <p className="text-lg sm:text-xl font-medium text-charcoal/80">06.06.2026</p>
+                </div>
+
+                {/* Nikoh Oqshomi */}
+                <div className="w-24 h-[1px] bg-gold/40 mx-auto my-4"></div>
+                <div className="space-y-2">
+                  <p className="text-xs tracking-[0.3em] uppercase text-bronze font-medium">Nikoh Oqshomi</p>
+                  <p className="text-lg sm:text-xl font-medium text-charcoal/80">07.06.2026</p>
                   <div className="pt-2 space-y-1">
                     <p className="text-base font-medium text-charcoal/90">Norin kapa MAXMUDJON OTA ZAMIN to&apos;yxonasi</p>
                     <p className="text-charcoal/70 font-light text-sm sm:text-base">Namangan viloyati, Norin tumani</p>
@@ -443,9 +460,29 @@ export default function Home() {
 
                 <div className="w-24 h-[1px] bg-gold/40 mx-auto my-4"></div>
 
-                {/* Map Placeholder */}
-                <div className="w-full max-w-sm mx-auto h-32 border border-gold/20 bg-cream/50 rounded flex items-center justify-center">
-                  <p className="text-gold/60 text-xs tracking-widest uppercase font-medium text-center px-4">Xarita tez orada qo&apos;shiladi</p>
+                {/* Map Section */}
+                <div className="w-full max-w-sm mx-auto h-64 border border-gold/20 bg-cream/50 rounded overflow-hidden shadow-inner relative group">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3011.838507361817!2d71.8921803765636!3d40.93091497136087!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDU1JzUxLjMiTiA3McKwNTMnMzEuOCJF!5e0!3m2!1suz!2s!4v1715490000000!5m2!1suz!2s"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen={true}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Wedding Venue Location"
+                    className="grayscale-[0.2] contrast-[1.1] brightness-[0.95]"
+                  ></iframe>
+                  <div className="absolute bottom-2 right-2 flex gap-2">
+                    <a 
+                      href="https://www.google.com/maps/search/?api=1&query=40.930915,71.894369"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-white/90 hover:bg-white text-gold text-[10px] px-3 py-1.5 rounded-full shadow-sm border border-gold/20 transition-all font-medium uppercase tracking-wider"
+                    >
+                      Xaritada ochish
+                    </a>
+                  </div>
                 </div>
               </div>
 

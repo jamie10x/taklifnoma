@@ -57,8 +57,7 @@ export async function POST(req: NextRequest) {
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize();
 
-        const text = firstName;
-        const fontSize = 11; // Slightly larger for better readability
+        const fontSize = 10; // Reduced from 11 as requested
         const textWidth = timesBoldItalic.widthOfTextAtSize(text, fontSize);
 
         firstPage.drawText(text, {

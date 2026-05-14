@@ -24,8 +24,8 @@ async function createPdf() {
   });
 
   const pdfBytes = await pdfDoc.save();
-  fs.writeFileSync('./public/template.pdf', pdfBytes);
-  console.log('Created dummy public/template.pdf');
+  fs.writeFileSync('./public/taklifnoma.pdf', pdfBytes);
+  console.log('Created dummy public/taklifnoma.pdf');
 }
 
 createPdf();

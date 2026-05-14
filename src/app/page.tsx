@@ -74,6 +74,7 @@ export default function Home() {
 
   const rotateX = useTransform(mouseY, [-200, 200], [15, -15]);
   const rotateY = useTransform(mouseX, [-200, 200], [-15, 15]);
+  const openTimersRef = useRef<number[]>([]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (openingStep > 0) return;
@@ -93,13 +94,13 @@ export default function Home() {
     if (openingStep !== 0) return;
     setOpeningStep(1);
 
-    setTimeout(() => {
+    openTimersRef.current.push(window.setTimeout(() => {
       setOpeningStep(2);
-    }, 500);
+    }, 500));
 
-    setTimeout(() => {
+    openTimersRef.current.push(window.setTimeout(() => {
       setIsOpen(true);
-    }, 1300);
+    }, 1300));
   };
 
   const [hasRsvpd, setHasRsvpd] = useState(false);
@@ -109,21 +110,30 @@ export default function Home() {
   const pngRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('has_rsvpd');
+    if (typeof window === 'undefined') return;
+
+    const stored = window.localStorage.getItem('has_rsvpd');
     if (stored === 'true') {
       setHasRsvpd(true);
-      const storedFirstName = localStorage.getItem('rsvpd_firstName');
+      const storedFirstName = window.localStorage.getItem('rsvpd_firstName');
       if (storedFirstName) setFirstName(storedFirstName);
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      openTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      openTimersRef.current = [];
+    };
   }, []);
 
   const getAssets = async () => {
     let currentPng = pngDataUrl;
     if (!currentPng && pngRef.current) {
-      currentPng = await toPng(pngRef.current, { 
-        cacheBust: true, 
+      currentPng = await toPng(pngRef.current, {
+        cacheBust: true,
         quality: 1.0,
-        pixelRatio: 3, // Increase pixel ratio for higher resolution/sharpness
+        pixelRatio: 3,
       });
       setPngDataUrl(currentPng);
     }
@@ -144,6 +154,21 @@ export default function Home() {
     return { currentPng, currentPdf };
   };
 
+  const downloadBlob = async (blob: Blob, fileName: string) => {
+    const url = window.URL.createObjectURL(blob);
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } finally {
+      window.URL.revokeObjectURL(url);
+    }
+  };
+
   const handleShare = async () => {
     try {
       const { currentPng } = await getAssets();
@@ -161,10 +186,12 @@ export default function Home() {
             text: 'Mening maxsus taklifnomam!',
           });
         } else {
-          throw new Error('Share not supported for this file type.');
+          const response = await fetch(currentPng);
+          await downloadBlob(await response.blob(), `Taklifnoma_${firstName}.png`);
         }
       } else {
-        alert('Web Share API sizning qurilmangizda qollab-quvvatlanmaydi. Iltimos pastdagi yuklab olish tugmasidan foydalaning.');
+        const response = await fetch(currentPng);
+        await downloadBlob(await response.blob(), `Taklifnoma_${firstName}.png`);
       }
     } catch (err) {
       console.error('Error sharing:', err);
@@ -177,20 +204,13 @@ export default function Home() {
       const { currentPdf } = await getAssets();
 
       if (currentPdf) {
-        const url = window.URL.createObjectURL(currentPdf);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Taklifnoma_${firstName}.pdf`;
-        a.click();
-        window.URL.revokeObjectURL(url);
+        await downloadBlob(currentPdf, `Taklifnoma_${firstName}.pdf`);
       } else {
         // Fallback to PNG if PDF is not available for some reason
         const { currentPng } = await getAssets();
         if (currentPng) {
-          const a = document.createElement('a');
-          a.href = currentPng;
-          a.download = `Taklifnoma_${firstName}.png`;
-          a.click();
+          const response = await fetch(currentPng);
+          await downloadBlob(await response.blob(), `Taklifnoma_${firstName}.png`);
         }
       }
     } catch (err) {
@@ -212,7 +232,10 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error('Something went wrong');
+        const errorBody = await response.json().catch(() => null);
+        console.error('RSVP request failed:', errorBody ?? response.statusText);
+        alert("Javob yuborilmadi. Iltimos qayta urinib ko'ring.");
+        return;
       }
 
       if (attendance === 'yes') {
@@ -229,8 +252,8 @@ export default function Home() {
         }
       }
 
-      localStorage.setItem('has_rsvpd', 'true');
-      localStorage.setItem('rsvpd_firstName', firstName);
+      window.localStorage.setItem('has_rsvpd', 'true');
+      window.localStorage.setItem('rsvpd_firstName', firstName);
 
       setHasRsvpd(true);
       setShowModal(true);
@@ -249,7 +272,7 @@ export default function Home() {
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-bronze/5 rounded-full blur-3xl pointer-events-none"></div>
 
       {/* Visually hidden PNG template generator */}
-      <div className="overflow-hidden absolute top-[-9999px] left-[-9999px] z-[-999]">
+      <div className="overflow-hidden absolute top-[-9999px] left-[-9999px] z-[-999]" aria-hidden="true">
         <div ref={pngRef} className="w-[800px] h-[1131px] bg-white flex flex-col items-center justify-center relative shadow-2xl">
           {/* Use the provided JPEG as background */}
           <img 
@@ -283,6 +306,15 @@ export default function Home() {
             onClick={handleOpenSequence}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
+            role="button"
+            tabIndex={0}
+            aria-label="Taklifnomani ochish"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleOpenSequence();
+              }
+            }}
           >
             {/* Minimalist Envelope Container */}
             <motion.div
@@ -502,12 +534,14 @@ export default function Home() {
                     <div className="flex flex-col space-y-4 pt-4">
                       <button
                         onClick={handleShare}
+                        type="button"
                         className="w-full bg-gold hover:bg-bronze text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
                       >
                         Taklifnomani Ulashish
                       </button>
                       <button
                         onClick={handleDownload}
+                        type="button"
                         className="w-full bg-transparent border border-gold text-gold hover:bg-gold hover:text-white px-10 py-4 rounded-full transition-all duration-300 tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
                       >
                         Yuklab Olish
@@ -538,6 +572,7 @@ export default function Home() {
                           type="radio"
                           name="attendance"
                           value="yes"
+                          checked={attendance === 'yes'}
                           className="hidden"
                           onChange={() => setAttendance('yes')}
                           required
@@ -553,6 +588,7 @@ export default function Home() {
                           type="radio"
                           name="attendance"
                           value="no"
+                          checked={attendance === 'no'}
                           className="hidden"
                           onChange={() => setAttendance('no')}
                           required

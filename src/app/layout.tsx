@@ -5,8 +5,26 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Wedding Invitation",
-  description: "You are invited to our luxurious wedding.",
+  title: {
+    default: "Jamshidbek & Gulshoda | Taklifnoma",
+    template: "%s | Jamshidbek & Gulshoda",
+  },
+  description:
+    "Jamshidbek va Gulshodaning to'y taklifnomasi, sana, manzil va RSVP formasi bilan.",
+  applicationName: "Taklifnoma",
+  keywords: ["wedding", "taklifnoma", "RSVP", "Jamshidbek", "Gulshoda"],
+  openGraph: {
+    title: "Jamshidbek & Gulshoda | Taklifnoma",
+    description:
+      "Onlayn to'y taklifnomasi: tadbir tafsilotlari, xarita va RSVP formasi.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jamshidbek & Gulshoda | Taklifnoma",
+    description:
+      "Onlayn to'y taklifnomasi: tadbir tafsilotlari, xarita va RSVP formasi.",
+  },
 };
 
 export default function RootLayout({
@@ -15,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="uz">
       <body className={inter.className}>{children}</body>
     </html>
   );

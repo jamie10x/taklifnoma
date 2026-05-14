@@ -3,23 +3,36 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
+function normalizeAttendance(value: unknown): 'yes' | 'no' | null {
+  if (value === 'yes' || value === 'no') return value;
+  return null;
+}
+
+function normalizeFirstName(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return value.trim().replace(/\s+/g, ' ');
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { firstName, attendance, isRegenerate } = body;
+    const firstName = normalizeFirstName(body?.firstName);
+    const attendance = normalizeAttendance(body?.attendance);
+    const isRegenerate = Boolean(body?.isRegenerate);
 
     if (!firstName || !attendance) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // 1. Send Telegram Notification (skip if just regenerating for download/share)
+    // Send Telegram notification unless this is a regeneration request.
     if (!isRegenerate) {
       const botToken = process.env.TELEGRAM_BOT_TOKEN;
       const chatId = process.env.CHAT_ID;
 
       if (botToken && chatId) {
-        const message = `🎉 Yangi RSVP!\n\nIsm: ${firstName}\nQatnashish: ${attendance === 'yes' ? 'Ha, albatta ✅' : 'Yoq, afsuski ❌'}`;
-        
+        const safeAttendance = attendance === 'yes' ? 'Ha, albatta ✅' : 'Yoq, afsuski ❌';
+        const message = `🎉 Yangi RSVP!\n\nIsm: ${firstName}\nQatnashish: ${safeAttendance}`;
+
         try {
           const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
@@ -44,7 +57,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Generate PDF if attending
+    // Generate PDF if attending.
     if (attendance === 'yes') {
       try {
         const templatePath = path.join(process.cwd(), 'public', 'taklifnoma.pdf');
@@ -57,12 +70,13 @@ export async function POST(req: NextRequest) {
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize();
 
-        const fontSize = 10; // Reduced from 11 as requested
+        const fontSize = 10;
         const textWidth = timesBoldItalic.widthOfTextAtSize(firstName, fontSize);
+        const safeFileName = firstName.replace(/[^a-zA-Z0-9\u0400-\u04FF\s-]/g, '').trim().replace(/\s+/g, '_') || 'guest';
 
         firstPage.drawText(firstName, {
           x: width / 2 - textWidth / 2,
-          y: height * 0.34, // Moved significantly higher to avoid overlapping the line/text below
+          y: height * 0.34,
           size: fontSize,
           font: timesBoldItalic,
           color: rgb(107/255, 17/255, 26/255),
@@ -74,16 +88,16 @@ export async function POST(req: NextRequest) {
           status: 200,
           headers: {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="taklifnoma-${firstName}.pdf"`,
+            'Content-Disposition': `attachment; filename="taklifnoma-${safeFileName}.pdf"`,
           },
         });
       } catch (pdfError) {
         console.error('Error generating PDF:', pdfError);
-        return NextResponse.json({ error: 'Failed to generate PDF. Make sure /public/template.pdf exists.' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to generate PDF. Make sure /public/taklifnoma.pdf exists.' }, { status: 500 });
       }
     }
 
-    // If not attending, just return success
+    // If not attending, return a success response without attachment.
     return NextResponse.json({ success: true, message: 'RSVP received.' }, { status: 200 });
   } catch (error) {
     console.error('RSVP error:', error);

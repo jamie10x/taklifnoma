@@ -1,0 +1,17 @@
+[Unit]
+Description=Taklifnoma Next.js app
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/taklifnoma
+Environment=NODE_ENV=production
+EnvironmentFile=-/var/www/taklifnoma/.env.local
+ExecStart=/usr/bin/env bun run start -- -H 127.0.0.1 -p 3000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

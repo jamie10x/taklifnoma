@@ -67,6 +67,7 @@ Quick summary of the production setup:
 - Build with `bun run build`
 - Run with PM2 using `ecosystem.config.cjs`
 - Put Nginx in front of the app and point your domain to `127.0.0.1:3000`
+- Use `deploy/deploy.sh` for repeat one-command deploys on the server
 
 Example PM2 command:
 
@@ -75,6 +76,12 @@ pm2 start ecosystem.config.cjs
 pm2 save
 pm2 startup
 ```
+
+Deploy helper files included in this repo:
+
+- `deploy/deploy.sh` — pull, install, build, and reload PM2 in one command
+- `deploy/nginx/taklifnoma.conf` — Nginx server block template
+- `deploy/systemd/taklifnoma.service` — optional systemd fallback service
 
 ## 📜 Available Scripts
 
@@ -101,6 +108,10 @@ pm2 startup
 │       └── GlassCard.tsx  # Styled container component
 ├── next.config.mjs        # Next.js configuration
 ├── ecosystem.config.cjs   # PM2 production process file
+├── deploy/                # Deployment helper files
+│   ├── deploy.sh          # One-command deployment script
+│   ├── nginx/             # Nginx sample config
+│   └── systemd/           # Optional systemd service file
 ├── tailwind.config.ts     # Tailwind CSS configuration
 └── tsconfig.json          # TypeScript configuration
 ```

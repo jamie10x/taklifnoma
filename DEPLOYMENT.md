@@ -182,6 +182,23 @@ pm2 stop taklifnoma
 pm2 delete taklifnoma
 ```
 
+### One-command deploy script (recommended)
+
+This repo now includes `deploy/deploy.sh` for faster repeat deployments.
+
+Run it from the server:
+
+```bash
+cd /var/www/taklifnoma
+./deploy/deploy.sh
+```
+
+Optional environment overrides:
+
+```bash
+APP_DIR=/var/www/taklifnoma APP_NAME=taklifnoma BRANCH=main ./deploy/deploy.sh
+```
+
 ---
 
 ## 7) Configure Nginx as a reverse proxy
@@ -214,6 +231,12 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 }
+```
+
+You can also copy the ready file from this repo:
+
+```bash
+sudo cp /var/www/taklifnoma/deploy/nginx/taklifnoma.conf /etc/nginx/sites-available/taklifnoma
 ```
 
 Enable the site and restart Nginx:
@@ -348,6 +371,21 @@ pm2 startup
 ```
 
 and executed the command printed by `pm2 startup`.
+
+### Alternative to PM2: systemd service
+
+If you ever want to run without PM2, this repo includes `deploy/systemd/taklifnoma.service`.
+
+Install it:
+
+```bash
+sudo cp /var/www/taklifnoma/deploy/systemd/taklifnoma.service /etc/systemd/system/taklifnoma.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now taklifnoma
+sudo systemctl status taklifnoma
+```
+
+If you use systemd mode, stop/remove PM2 app to avoid port conflicts.
 
 ### Telegram notifications are not sending
 

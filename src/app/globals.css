@@ -2,8 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
+  html,
   body {
-    @apply bg-silk-gradient text-charcoal min-h-screen font-sans antialiased;
+    background: linear-gradient(135deg, #FFFFF0 0%, #FDFBF7 100%);
+  }
+
+  body {
+    @apply bg-silk-gradient text-charcoal font-sans antialiased;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: rgba(212, 175, 55, 0.2);
   }
 }

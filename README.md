@@ -58,6 +58,24 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## 🚀 Production Deployment
+
+For Ubuntu server deployment, use the full guide in [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+Quick summary of the production setup:
+
+- Build with `bun run build`
+- Run with PM2 using `ecosystem.config.cjs`
+- Put Nginx in front of the app and point your domain to `127.0.0.1:3000`
+
+Example PM2 command:
+
+```bash
+pm2 start ecosystem.config.cjs
+pm2 save
+pm2 startup
+```
+
 ## 📜 Available Scripts
 
 - `bun dev`: Starts the development server.
@@ -65,6 +83,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `bun start`: Starts the production server.
 - `bun lint`: Runs ESLint to check for code quality issues.
 - `node create-dummy-pdf.mjs`: Utility script to create a placeholder PDF template in `public/`.
+- `pm2 start ecosystem.config.cjs`: Starts the production app process.
 
 ## 📂 Project Structure
 
@@ -81,6 +100,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 │   └── components/        # Reusable React components
 │       └── GlassCard.tsx  # Styled container component
 ├── next.config.mjs        # Next.js configuration
+├── ecosystem.config.cjs   # PM2 production process file
 ├── tailwind.config.ts     # Tailwind CSS configuration
 └── tsconfig.json          # TypeScript configuration
 ```

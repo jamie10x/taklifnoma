@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { toPng } from "html-to-image";
 
@@ -60,6 +60,24 @@ function CountdownTimer({ targetDate }: { targetDate: string }) {
   );
 }
 
+function MonogramSeal({ className = "", size = "md" }: { className?: string; size?: "sm" | "md" }) {
+  const dimensions = size === "sm" ? "w-14 h-14" : "w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem]";
+
+  return (
+    <div className={`relative ${dimensions} ${className}`}>
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#FFFDF6] via-[#F6EFD8] to-[#E9D08A] shadow-[0_8px_20px_rgba(0,0,0,0.18)] border border-white/60" />
+      <div className="absolute inset-[6px] rounded-full border border-gold/35" />
+      <div className="absolute inset-[12px] rounded-full bg-gradient-to-br from-white/85 to-[#F9F3E6] border border-gold/20 flex items-center justify-center">
+        <div className="relative flex items-center justify-center w-full h-full text-gold">
+          <span className="absolute left-1/2 top-[18%] -translate-x-1/2 text-[8px] sm:text-[9px] tracking-[0.35em] uppercase opacity-75">J</span>
+          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] sm:text-[11px] font-serif italic">&</span>
+          <span className="absolute left-1/2 bottom-[14%] -translate-x-1/2 text-[8px] sm:text-[9px] tracking-[0.35em] uppercase opacity-75">G</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,10 +89,35 @@ export default function Home() {
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+  const shouldReduceMotion = useReducedMotion();
 
   const rotateX = useTransform(mouseY, [-200, 200], [15, -15]);
   const rotateY = useTransform(mouseX, [-200, 200], [-15, 15]);
   const openTimersRef = useRef<number[]>([]);
+  const sparkleSeed = openingStep >= 1 ? 1 : 0;
+  const sparkles = useMemo(() => {
+    if (shouldReduceMotion || sparkleSeed === 0) return [];
+
+    return Array.from({ length: 24 }, (_, i) => {
+      const angle = (Math.PI * 2 * i) / 24;
+      const velocity = 40 + Math.random() * 80;
+      const x = Math.cos(angle) * velocity;
+      const y = Math.sin(angle) * velocity + Math.random() * 30;
+
+      return {
+        key: i,
+        x,
+        y,
+        scale: Math.random() * 0.8 + 0.4,
+        duration: 0.6 + Math.random() * 0.4,
+      };
+    });
+  }, [shouldReduceMotion, sparkleSeed]);
+
+  const getInvitationPixelRatio = () => {
+    if (typeof window === 'undefined') return 2;
+    return window.innerWidth < 640 || shouldReduceMotion ? 2 : 3;
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (openingStep > 0) return;
@@ -133,7 +176,7 @@ export default function Home() {
       currentPng = await toPng(pngRef.current, {
         cacheBust: true,
         quality: 1.0,
-        pixelRatio: 3,
+        pixelRatio: getInvitationPixelRatio(),
       });
       setPngDataUrl(currentPng);
     }
@@ -174,10 +217,10 @@ export default function Home() {
       const { currentPng } = await getAssets();
       if (!currentPng) return;
 
+      const pngBlob = await (await fetch(currentPng)).blob();
+
       if (navigator.share && navigator.canShare) {
-        const response = await fetch(currentPng);
-        const blob = await response.blob();
-        const file = new File([blob], `Taklifnoma_${firstName}.png`, { type: 'image/png' });
+        const file = new File([pngBlob], `Taklifnoma_${firstName}.png`, { type: 'image/png' });
 
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({
@@ -186,12 +229,10 @@ export default function Home() {
             text: 'Mening maxsus taklifnomam!',
           });
         } else {
-          const response = await fetch(currentPng);
-          await downloadBlob(await response.blob(), `Taklifnoma_${firstName}.png`);
+          await downloadBlob(pngBlob, `Taklifnoma_${firstName}.png`);
         }
       } else {
-        const response = await fetch(currentPng);
-        await downloadBlob(await response.blob(), `Taklifnoma_${firstName}.png`);
+        await downloadBlob(pngBlob, `Taklifnoma_${firstName}.png`);
       }
     } catch (err) {
       console.error('Error sharing:', err);
@@ -241,15 +282,6 @@ export default function Home() {
       if (attendance === 'yes') {
         const blob = await response.blob();
         setPdfBlob(blob);
-
-        if (pngRef.current) {
-          const dataUrl = await toPng(pngRef.current, { 
-            cacheBust: true, 
-            quality: 1.0,
-            pixelRatio: 3, // Increase pixel ratio for higher resolution/sharpness
-          });
-          setPngDataUrl(dataUrl);
-        }
       }
 
       window.localStorage.setItem('has_rsvpd', 'true');
@@ -266,26 +298,37 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 md:p-24 relative overflow-hidden">
+    <main className="flex min-h-[100dvh] flex-col items-center justify-center p-3 sm:p-8 md:p-24 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-gold/5 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-bronze/5 rounded-full blur-3xl pointer-events-none"></div>
 
       {/* Visually hidden PNG template generator */}
+      {firstName && (
       <div className="overflow-hidden absolute top-[-9999px] left-[-9999px] z-[-999]" aria-hidden="true">
-        <div ref={pngRef} className="w-[800px] h-[1131px] bg-white flex flex-col items-center justify-center relative shadow-2xl">
-          {/* Use the provided JPEG as background */}
-          <img 
-            src="/taklifnoma.jpg" 
-            alt="Template" 
+        <div ref={pngRef} className="w-[800px] h-[1131px] bg-cream flex flex-col items-center justify-center relative shadow-2xl overflow-hidden">
+          {/* Use the SVG invitation artwork as the capture base */}
+          <img
+            src="/taklifnoma.svg"
+            alt="Invitation template"
             className="absolute inset-0 w-full h-full object-cover"
           />
-          
+          {openingStep >= 1 && !shouldReduceMotion && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <motion.div
+                className="absolute inset-y-0 left-[-35%] w-[35%] rotate-12 bg-gradient-to-r from-transparent via-white/55 to-transparent blur-2xl"
+                initial={{ x: 0, opacity: 0 }}
+                animate={{ x: "320%", opacity: [0, 0.75, 0] }}
+                transition={{ duration: 1.8, ease: "easeInOut" }}
+              />
+            </div>
+          )}
+
           <div className="relative z-10 w-full h-full flex flex-col items-center">
-            {/* Guest Name positioning - adjusted to match the line on the template */}
-            {(firstName) && (
+            <MonogramSeal size="md" className="absolute top-[14%] left-1/2 -translate-x-1/2" />
+            {firstName && (
               <div className="absolute top-[67.5%] w-full flex flex-col items-center">
-                <p className="text-[28px] font-serif font-bold italic text-[#6B111A] leading-none">
+                <p className="text-[28px] font-serif font-bold italic text-[#6B111A] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]">
                   {firstName}
                 </p>
               </div>
@@ -293,6 +336,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      )}
 
       <AnimatePresence mode="wait">
         {!isOpen && !hasRsvpd ? (
@@ -301,8 +345,8 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 1.1, y: -40, filter: "blur(12px)" }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
-            className="cursor-pointer z-50 flex flex-col items-center justify-center group [perspective:2000px]"
+            transition={shouldReduceMotion ? { duration: 0.2 } : { type: "spring", stiffness: 100, damping: 20 }}
+            className="cursor-pointer z-50 flex flex-col items-center justify-center group [perspective:2000px] touch-manipulation select-none"
             onClick={handleOpenSequence}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
@@ -318,9 +362,9 @@ export default function Home() {
           >
             {/* Minimalist Envelope Container */}
             <motion.div
-              style={{ rotateX, rotateY }}
-              whileHover={openingStep === 0 ? { scale: 1.02, y: -12 } : {}}
-              className="relative w-80 h-56 sm:w-[28rem] sm:h-72 bg-[#EAE3D6] shadow-[0_20px_60px_-15px_rgba(212,175,55,0.4)] hover:shadow-[0_30px_70px_-15px_rgba(212,175,55,0.5)] transition-shadow duration-500 rounded-md flex items-center justify-center border border-gold/30 [transform-style:preserve-3d]"
+              style={shouldReduceMotion ? undefined : { rotateX, rotateY }}
+              whileHover={shouldReduceMotion || openingStep !== 0 ? {} : { scale: 1.02, y: -12 }}
+              className="relative w-[min(20rem,calc(100vw-2rem))] h-56 sm:w-[28rem] sm:h-72 bg-[#EAE3D6] shadow-[0_20px_60px_-15px_rgba(212,175,55,0.4)] hover:shadow-[0_30px_70px_-15px_rgba(212,175,55,0.5)] transition-shadow duration-500 rounded-md flex items-center justify-center border border-gold/30 [transform-style:preserve-3d]"
             >
 
               {/* Luxurious Inner Texture */}
@@ -331,6 +375,21 @@ export default function Home() {
                   backgroundSize: '20px 20px'
                 }}
               ></div>
+
+              {openingStep >= 1 && !shouldReduceMotion && (
+                <motion.div
+                  className="absolute inset-0 z-[12] pointer-events-none overflow-hidden rounded-md"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <motion.div
+                    className="absolute inset-y-0 left-[-40%] w-[35%] rotate-12 bg-gradient-to-r from-transparent via-white/35 to-transparent blur-2xl"
+                    initial={{ x: 0 }}
+                    animate={{ x: "360%" }}
+                    transition={{ duration: 1.9, ease: "easeInOut" }}
+                  />
+                </motion.div>
+              )}
 
               {/* Mini Card Sliding Out */}
               <motion.div
@@ -362,35 +421,29 @@ export default function Home() {
                   rotateX: openingStep >= 1 ? 180 : 0,
                   zIndex: openingStep >= 1 ? 5 : 30
                 }}
-                transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
+                transition={shouldReduceMotion ? { duration: 0.3 } : { duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
                 className="absolute top-0 left-0 w-full h-full origin-top pointer-events-none drop-shadow-[0_8px_12px_rgba(0,0,0,0.15)]"
               >
                 <div className="w-full h-full bg-[#F2EBE1]" style={{ clipPath: 'polygon(0 0, 100% 0, 50% 55%)' }}></div>
               </motion.div>
 
               {/* Sparkle Burst */}
-              {openingStep >= 1 && (
+              {sparkles.length > 0 && (
                 <div className="absolute top-[53%] left-1/2 w-0 h-0 z-50 pointer-events-none">
-                  {[...Array(24)].map((_, i) => {
-                    const angle = (Math.PI * 2 * i) / 24;
-                    const velocity = 40 + Math.random() * 80;
-                    const x = Math.cos(angle) * velocity;
-                    const y = Math.sin(angle) * velocity + (Math.random() * 30);
-                    return (
+                  {sparkles.map((sparkle) => (
                       <motion.div
-                        key={i}
+                        key={sparkle.key}
                         initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
                         animate={{
                           opacity: 0,
-                          scale: Math.random() * 0.8 + 0.4,
-                          x,
-                          y: y + 40 // gravity drop
+                          scale: sparkle.scale,
+                          x: sparkle.x,
+                          y: sparkle.y + 40
                         }}
-                        transition={{ duration: 0.6 + Math.random() * 0.4, ease: "easeOut" }}
+                        transition={{ duration: sparkle.duration, ease: "easeOut" }}
                         className="absolute w-1.5 h-1.5 bg-gradient-to-tr from-gold to-[#FFF8D6] rounded-full shadow-[0_0_8px_rgba(212,175,55,1)]"
                       />
-                    );
-                  })}
+                  ))}
                 </div>
               )}
 
@@ -401,11 +454,9 @@ export default function Home() {
                     scale: openingStep >= 1 ? 1.5 : 1,
                     opacity: openingStep >= 1 ? 0 : 1
                   }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  transition={shouldReduceMotion ? { duration: 0.2 } : { duration: 0.4, ease: "easeOut" }}
                 >
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-gold via-[#E5C158] to-bronze rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.3)] flex items-center justify-center border-2 border-white/40 group-hover:scale-110 transition-transform duration-500 ease-out">
-                    <span className="text-white font-serif italic text-lg sm:text-xl drop-shadow-md">J&G</span>
-                  </div>
+                  <MonogramSeal size="sm" className="group-hover:scale-110 transition-transform duration-500 ease-out" />
                 </motion.div>
               </div>
             </motion.div>
@@ -426,6 +477,7 @@ export default function Home() {
             className="w-full max-w-3xl z-10"
           >
             <GlassCard className="w-full text-center space-y-8 relative overflow-hidden px-6 sm:px-12 py-12 sm:py-16">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.12),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(205,127,50,0.08),transparent_45%)] pointer-events-none"></div>
               {/* Decorative corner borders */}
               <div className="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-gold/60 rounded-tl-lg"></div>
               <div className="absolute top-4 right-4 w-12 h-12 border-t-2 border-r-2 border-gold/60 rounded-tr-lg"></div>
@@ -520,33 +572,45 @@ export default function Home() {
 
               <div className="w-24 h-[1px] bg-gold/40 mx-auto my-8 sm:my-10"></div>
 
-              <div className="space-y-6 pb-6">
+              <div className="space-y-6 pb-6 relative z-10">
                 {hasRsvpd ? (
-                  <div className="w-full max-w-md mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-3xl">✅</span>
+                  <div className="w-full max-w-md mx-auto space-y-7 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
+                      <MonogramSeal size="sm" className="scale-90" />
+                      <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
                     </div>
-                    <h3 className="text-2xl font-serif text-gold mb-2">Siz allaqachon ro'yxatdan o'tgansiz!</h3>
-                    <p className="text-charcoal/80 mb-8 font-light text-sm sm:text-base">
-                      Taklifnomangizni do'stlaringiz bilan ulashing yoki saqlab oling.
+                    <h3 className="text-2xl sm:text-3xl font-serif text-gold mb-2 tracking-wide">
+                      {attendance === 'yes' ? 'Rahmat! Sizni kutamiz' : 'Rahmat!'}
+                    </h3>
+                    <p className="text-charcoal/80 mb-8 font-light text-sm sm:text-base max-w-sm mx-auto leading-relaxed">
+                      {attendance === 'yes'
+                        ? 'Javobingiz qabul qilindi. Taklifnomangizni saqlab oling yoki do‘stlaringiz bilan ulashing.'
+                        : 'Javobingiz qabul qilindi. Sizni bu baxtli kunda ko‘rishdan xursand bo‘lamiz.'}
                     </p>
 
-                    <div className="flex flex-col space-y-4 pt-4">
-                      <button
-                        onClick={handleShare}
-                        type="button"
-                        className="w-full bg-gold hover:bg-bronze text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
-                      >
-                        Taklifnomani Ulashish
-                      </button>
-                      <button
-                        onClick={handleDownload}
-                        type="button"
-                        className="w-full bg-transparent border border-gold text-gold hover:bg-gold hover:text-white px-10 py-4 rounded-full transition-all duration-300 tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
-                      >
-                        Yuklab Olish
-                      </button>
-                    </div>
+                    {attendance === 'yes' ? (
+                      <div className="flex flex-col space-y-4 pt-4">
+                        <button
+                          onClick={handleShare}
+                          type="button"
+                          className="w-full bg-gradient-to-r from-gold to-[#DDBB54] hover:from-bronze hover:to-gold text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
+                        >
+                          Taklifnomani Ulashish
+                        </button>
+                        <button
+                          onClick={handleDownload}
+                          type="button"
+                          className="w-full bg-transparent border border-gold/70 text-gold hover:bg-gold hover:text-white px-10 py-4 rounded-full transition-all duration-300 tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
+                        >
+                          Yuklab Olish
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-xs tracking-[0.25em] uppercase text-bronze/70 font-medium">
+                        Sizga samimiy tilaklarimizni yo‘llaymiz
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-8">
@@ -629,21 +693,43 @@ export default function Home() {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-cream p-8 sm:p-12 rounded-2xl shadow-2xl max-w-sm w-full text-center border border-gold/30 relative"
+                className="bg-gradient-to-br from-[#FFFDF8] via-[#FDF6E9] to-[#F7EED8] p-8 sm:p-12 rounded-[1.75rem] shadow-[0_30px_90px_-30px_rgba(91,64,15,0.45)] max-w-sm w-full text-center border border-gold/25 relative overflow-hidden"
             >
-              <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">🥂</span>
+              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.16),transparent_35%),radial-gradient(circle_at_bottom,rgba(205,127,50,0.08),transparent_35%)]"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-white/60 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-gold/20">
+                  <span className="text-3xl">✨</span>
+                </div>
+                <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent mx-auto mb-6"></div>
+                <h3 className="text-2xl font-serif text-gold mb-2 tracking-wide">Rahmat!</h3>
+                <p className="text-charcoal/80 mb-8 font-light leading-relaxed">
+                  Javobingiz qabul qilindi. Sizni kutib qolamiz!
+                </p>
+                {attendance === 'yes' ? (
+                  <div className="space-y-3 mb-6">
+                    <button
+                      onClick={handleShare}
+                      type="button"
+                      className="w-full bg-gradient-to-r from-gold to-[#DDBB54] hover:from-bronze hover:to-gold text-white py-3 rounded-full uppercase tracking-[0.18em] text-xs font-medium transition-all duration-300 shadow-md"
+                    >
+                      Taklifnomani Ulashish
+                    </button>
+                    <button
+                      onClick={handleDownload}
+                      type="button"
+                      className="w-full bg-white/60 hover:bg-white text-gold border border-gold/30 py-3 rounded-full uppercase tracking-[0.18em] text-xs font-medium transition-all duration-300"
+                    >
+                      Yuklab Olish
+                    </button>
+                  </div>
+                ) : null}
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="w-full bg-transparent border border-gold/25 text-gold hover:bg-gold hover:text-white py-3 rounded-full uppercase tracking-[0.18em] text-xs font-medium transition-colors"
+                >
+                  Yopish
+                </button>
               </div>
-              <h3 className="text-2xl font-serif text-gold mb-2">Rahmat!</h3>
-              <p className="text-charcoal/80 mb-8 font-light">
-                Javobingiz qabul qilindi. Sizni kutib qolamiz!
-              </p>
-              <button
-                onClick={() => setShowModal(false)}
-                className="w-full bg-gold hover:bg-bronze text-white py-3 rounded-full uppercase tracking-widest text-xs font-medium transition-colors"
-              >
-                Yopish
-              </button>
             </motion.div>
           </motion.div>
         )}

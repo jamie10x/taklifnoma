@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import Image from 'next/image';
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { toPng } from "html-to-image";
@@ -308,10 +309,13 @@ export default function Home() {
       <div className="overflow-hidden absolute top-[-9999px] left-[-9999px] z-[-999]" aria-hidden="true">
         <div ref={pngRef} className="w-[800px] h-[1131px] bg-cream flex flex-col items-center justify-center relative shadow-2xl overflow-hidden">
           {/* Use the SVG invitation artwork as the capture base */}
-          <img
+          <Image
             src="/taklifnoma.svg"
             alt="Invitation template"
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            priority
+            unoptimized
+            className="absolute inset-0 object-cover"
           />
           {openingStep >= 1 && !shouldReduceMotion && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -614,7 +618,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-8">
-                    <p className="text-charcoal/70 text-sm sm:text-base font-light leading-relaxed text-center tracking-wide whitespace-pre-line">HAYOTIMIZNING BU BAXTIYOR KUNIDA{'\n'}BIZ BILAN BO'LISHINGIZDAN UMIDVORMIZ.</p>
+                    <p className="text-charcoal/70 text-sm sm:text-base font-light leading-relaxed text-center tracking-wide whitespace-pre-line">HAYOTIMIZNING BU BAXTIYOR KUNIDA{'\n'}BIZ BILAN BO&apos;LISHINGIZDAN UMIDVORMIZ.</p>
 
                     <div className="w-full">
                       <input

@@ -84,7 +84,12 @@ export async function POST(req: NextRequest) {
 
         const pdfBytes = await pdfDoc.save();
 
-        return new NextResponse(pdfBytes as any, {
+        // Wrap the Uint8Array in a Blob to satisfy BodyInit typing.
+        // Create a fresh ArrayBuffer and copy the bytes to avoid SharedArrayBuffer/ArrayBufferLike typing issues.
+        const arrayBuffer = new ArrayBuffer(pdfBytes.byteLength);
+        new Uint8Array(arrayBuffer).set(pdfBytes);
+        const pdfBlob = new Blob([arrayBuffer]);
+        return new NextResponse(pdfBlob, {
           status: 200,
           headers: {
             'Content-Type': 'application/pdf',

@@ -4,7 +4,7 @@ import fs from 'fs';
 async function createPdf() {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([600, 800]);
-  const { width, height } = page.getSize();
+  const { height } = page.getSize();
   const font = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
   
   page.drawText('Dummy Wedding Template', {

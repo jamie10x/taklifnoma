@@ -236,7 +236,7 @@ server {
 You can also copy the ready file from this repo:
 
 ```bash
-sudo cp /var/www/taklifnoma/deploy/nginx/taklifnoma.conf /etc/nginx/sites-available/taklifnoma
+sudo cp /var/www/taklifnoma/deploy/nginx/taklifnoma.nginx.conf /etc/nginx/sites-available/taklifnoma
 ```
 
 Enable the site and restart Nginx:

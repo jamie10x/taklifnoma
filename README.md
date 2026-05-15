@@ -80,7 +80,7 @@ pm2 startup
 Deploy helper files included in this repo:
 
 - `deploy/deploy.sh` — pull, install, build, and reload PM2 in one command
-- `deploy/nginx/taklifnoma.conf` — Nginx server block template
+- `deploy/nginx/taklifnoma.nginx.conf` — Nginx server block template
 - `deploy/systemd/taklifnoma.service` — optional systemd fallback service
 
 ## 📜 Available Scripts

@@ -109,3 +109,56 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const url = new URL(req.url);
+    const firstName = normalizeFirstName(url.searchParams.get('firstName'));
+    const attendance = normalizeAttendance(url.searchParams.get('attendance'));
+
+    if (!firstName || attendance !== 'yes') {
+      return NextResponse.json({ error: 'Missing or invalid params' }, { status: 400 });
+    }
+
+    // Generate personalized PDF (reuse POST logic)
+    const templatePath = path.join(process.cwd(), 'public', 'taklifnoma.pdf');
+    const existingPdfBytes = await readFile(templatePath);
+
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const timesBoldItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
+
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+    const { width, height } = firstPage.getSize();
+
+    const fontSize = 10;
+    const textWidth = timesBoldItalic.widthOfTextAtSize(firstName, fontSize);
+    const safeFileName = firstName.replace(/[^a-zA-Z0-9\u0400-\u04FF\s-]/g, '').trim().replace(/\s+/g, '_') || 'guest';
+
+    firstPage.drawText(firstName, {
+      x: width / 2 - textWidth / 2,
+      y: height * 0.34,
+      size: fontSize,
+      font: timesBoldItalic,
+      color: rgb(107 / 255, 17 / 255, 26 / 255),
+    });
+
+    const pdfBytes = await pdfDoc.save();
+
+    const arrayBuffer = new ArrayBuffer(pdfBytes.byteLength);
+    new Uint8Array(arrayBuffer).set(pdfBytes);
+
+    return new NextResponse(arrayBuffer, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="taklifnoma-${safeFileName}.pdf"`,
+        'Cache-Control': 'public, max-age=60',
+      },
+    });
+  } catch (err) {
+    console.error('GET RSVP error:', err);
+    return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 });
+  }
+}
+

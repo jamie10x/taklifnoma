@@ -56,7 +56,7 @@ bun dev
 # or
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3009](http://localhost:3009) with your browser to see the result.
 
 ## 🚀 Production Deployment
 
@@ -66,7 +66,7 @@ Quick summary of the production setup:
 
 - Build with `bun run build`
 - Run with PM2 using `ecosystem.config.cjs`
-- Put Nginx in front of the app and point your domain to `127.0.0.1:3000`
+- Put Nginx in front of the app and point your domain to `127.0.0.1:3009`
 - Use `deploy/deploy.sh` for repeat one-command deploys on the server
 
 Example PM2 command:

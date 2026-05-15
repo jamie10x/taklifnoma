@@ -115,6 +115,11 @@ export default function Home() {
     });
   }, [shouldReduceMotion, sparkleSeed]);
 
+  const isInAppBrowser = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    return /Telegram|FBAN|FBAV|Instagram|Line|WebView|wv/i.test(navigator.userAgent || '');
+  }, []);
+
   const getInvitationPixelRatio = () => {
     if (typeof window === 'undefined') return 2;
     return window.innerWidth < 640 || shouldReduceMotion ? 2 : 3;
@@ -213,52 +218,85 @@ export default function Home() {
     }
   };
 
+  // Build a direct URL to the server-generated PDF for sharing/opening in external viewers
+  const getShareUrl = () => {
+    const path = `/api/rsvp?firstName=${encodeURIComponent(firstName)}&attendance=yes`;
+    if (typeof window === 'undefined') return path;
+    return `${location.origin}${path}`;
+  };
+
+  const openInNewTab = (url: string) => {
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch {}
+    }
+  };
+
+  const handleOpenExternalBrowser = () => {
+    openInNewTab(getShareUrl());
+  };
+
+  const handleCopyLink = async () => {
+    const shareUrl = getShareUrl();
+    try {
+      await navigator.clipboard?.writeText(shareUrl);
+      alert('Link nusxalandi. Uni Telegramga yuborishingiz yoki brauzerda ochishingiz mumkin.');
+    } catch {
+      alert('Linkni nusxalab bo‘lmadi. Iltimos, manzilni qo‘lda nusxa oling.');
+    }
+  };
+
   const handleShare = async () => {
     try {
-      const { currentPng } = await getAssets();
-      if (!currentPng) return;
+      const shareUrl = getShareUrl();
 
-      const pngBlob = await (await fetch(currentPng)).blob();
-
-      if (navigator.share && navigator.canShare) {
-        const file = new File([pngBlob], `Taklifnoma_${firstName}.png`, { type: 'image/png' });
-
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: 'Taklifnoma',
-            text: 'Mening maxsus taklifnomam!',
-          });
-        } else {
-          await downloadBlob(pngBlob, `Taklifnoma_${firstName}.png`);
+      // Prefer sharing a URL (works in many in-app browsers including Telegram)
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Taklifnoma', text: 'Sizni taklif qilamiz', url: shareUrl });
+          return;
+        } catch (err) {
+          console.warn('navigator.share failed with URL, falling back', err);
         }
-      } else {
-        await downloadBlob(pngBlob, `Taklifnoma_${firstName}.png`);
       }
+
+      // Fallback: open the PDF URL in a new tab so the user can use the viewer's native save/share
+      openInNewTab(shareUrl);
     } catch (err) {
       console.error('Error sharing:', err);
-      alert('Ulashishda xatolik yuz berdi.');
+      // Final fallback: copy link to clipboard
+      const shareUrl = getShareUrl();
+      try {
+        await navigator.clipboard?.writeText(shareUrl);
+        alert('Link nusxalandi. Tashqi brauzerda oching yoki paste qilib ulashing.');
+      } catch {
+        alert("Ulashishda xatolik yuz berdi. Iltimos, linkni qo'lda nusxa oling.");
+      }
     }
   };
 
   const handleDownload = async () => {
     try {
-      const { currentPdf } = await getAssets();
-
-      if (currentPdf) {
-        await downloadBlob(currentPdf, `Taklifnoma_${firstName}.pdf`);
-      } else {
-        // Fallback to PNG if PDF is not available for some reason
-        const { currentPng } = await getAssets();
-        if (currentPng) {
-          const response = await fetch(currentPng);
-          await downloadBlob(await response.blob(), `Taklifnoma_${firstName}.png`);
-        }
-      }
+      const shareUrl = getShareUrl();
+      // Open inline PDF in viewer (more reliable in in-app browsers than programmatic blob downloads)
+      openInNewTab(shareUrl);
     } catch (err) {
       console.error('Error downloading:', err);
+      alert('Yuklab olish amalga oshmadi. Iltimos, tashqi brauzerda oching.');
     }
   };
+
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,6 +631,16 @@ export default function Home() {
                         : 'Javobingiz qabul qilindi. Sizni bu baxtli kunda ko‘rishdan xursand bo‘lamiz.'}
                     </p>
 
+                    {isInAppBrowser && attendance === 'yes' && (
+                      <div className="mb-5 rounded-2xl border border-gold/20 bg-white/70 px-4 py-3 text-left shadow-sm">
+                        <p className="text-xs sm:text-sm text-charcoal/75 leading-relaxed">
+                          <span className="font-semibold text-gold">Telegram browser detected:</span>{' '}
+                          if the share or download button feels limited, tap <span className="font-semibold">Open in external browser</span> or{' '}
+                          copy the link and send it to friends.
+                        </p>
+                      </div>
+                    )}
+
                     {attendance === 'yes' ? (
                       <div className="flex flex-col space-y-4 pt-4">
                         <button
@@ -609,6 +657,23 @@ export default function Home() {
                         >
                           Yuklab Olish
                         </button>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <button
+                            onClick={handleOpenExternalBrowser}
+                            type="button"
+                            className="w-full bg-white/70 hover:bg-white border border-gold/25 text-gold px-6 py-3 rounded-full transition-colors duration-300 tracking-[0.12em] uppercase text-[11px] sm:text-xs font-medium"
+                          >
+                            Tashqi brauzerda ochish
+                          </button>
+                          <button
+                            onClick={handleCopyLink}
+                            type="button"
+                            className="w-full bg-white/70 hover:bg-white border border-gold/25 text-gold px-6 py-3 rounded-full transition-colors duration-300 tracking-[0.12em] uppercase text-[11px] sm:text-xs font-medium"
+                          >
+                            Linkni nusxalash
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <p className="text-xs tracking-[0.25em] uppercase text-bronze/70 font-medium">

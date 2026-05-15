@@ -142,7 +142,7 @@ module.exports = {
     {
       name: 'taklifnoma',
       script: 'bun',
-      args: 'run start -- --hostname 127.0.0.1 --port 3000',
+      args: 'run start -- --hostname 127.0.0.1 --port 3009',
       interpreter: 'none',
       cwd: '/var/www/taklifnoma',
       exec_mode: 'fork',
@@ -220,7 +220,7 @@ server {
     client_max_body_size 10m;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3009;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -292,7 +292,7 @@ pm2 status
 Check the app locally on the server:
 
 ```bash
-curl -I http://127.0.0.1:3000
+curl -I http://127.0.0.1:3009
 ```
 
 Check Nginx:

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Image from 'next/image';
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
-import { toPng } from "html-to-image";
+
 
 function CountdownTimer({ targetDate }: { targetDate: string }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -120,11 +120,6 @@ export default function Home() {
     return /Telegram|FBAN|FBAV|Instagram|Line|WebView|wv/i.test(navigator.userAgent || '');
   }, []);
 
-  const getInvitationPixelRatio = () => {
-    if (typeof window === 'undefined') return 2;
-    return window.innerWidth < 640 || shouldReduceMotion ? 2 : 3;
-  };
-
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (openingStep > 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -153,8 +148,6 @@ export default function Home() {
   };
 
   const [hasRsvpd, setHasRsvpd] = useState(false);
-  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
-  const [pngDataUrl, setPngDataUrl] = useState<string | null>(null);
 
   const pngRef = useRef<HTMLDivElement>(null);
 
@@ -176,48 +169,6 @@ export default function Home() {
     };
   }, []);
 
-  const getAssets = async () => {
-    let currentPng = pngDataUrl;
-    if (!currentPng && pngRef.current) {
-      currentPng = await toPng(pngRef.current, {
-        cacheBust: true,
-        quality: 1.0,
-        pixelRatio: getInvitationPixelRatio(),
-      });
-      setPngDataUrl(currentPng);
-    }
-
-    let currentPdf = pdfBlob;
-    if (!currentPdf && firstName) {
-      const response = await fetch('/api/rsvp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, attendance: 'yes', isRegenerate: true }),
-      });
-      if (response.ok) {
-        currentPdf = await response.blob();
-        setPdfBlob(currentPdf);
-      }
-    }
-
-    return { currentPng, currentPdf };
-  };
-
-  const downloadBlob = async (blob: Blob, fileName: string) => {
-    const url = window.URL.createObjectURL(blob);
-    try {
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } finally {
-      window.URL.revokeObjectURL(url);
-    }
-  };
-
   // Build a direct URL to the server-generated PDF for sharing/opening in external viewers
   const getShareUrl = () => {
     const path = `/api/rsvp?firstName=${encodeURIComponent(firstName)}&attendance=yes`;
@@ -228,7 +179,7 @@ export default function Home() {
   const openInNewTab = (url: string) => {
     try {
       window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (e) {
+    } catch {
       try {
         const a = document.createElement('a');
         a.href = url;
@@ -316,11 +267,6 @@ export default function Home() {
         console.error('RSVP request failed:', errorBody ?? response.statusText);
         alert("Javob yuborilmadi. Iltimos qayta urinib ko'ring.");
         return;
-      }
-
-      if (attendance === 'yes') {
-        const blob = await response.blob();
-        setPdfBlob(blob);
       }
 
       window.localStorage.setItem('has_rsvpd', 'true');

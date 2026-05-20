@@ -597,7 +597,7 @@ export default function Home() {
                 <div className="space-y-2">
                   <p className="text-xs tracking-[0.3em] uppercase text-bronze font-medium">VECHER</p>
                   <p className="text-3xl sm:text-4xl font-serif text-charcoal/90 font-medium tracking-wide">13:00</p>
-                  <p className="text-lg sm:text-xl font-medium text-charcoal/80">06.06.2026</p>
+                  <p className="text-lg sm:text-xl font-medium text-charcoal/80">06.06.2026</p>a
                 </div>
 
                 {/* Nikoh Oqshomi */}

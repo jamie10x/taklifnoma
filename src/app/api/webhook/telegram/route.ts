@@ -7,8 +7,17 @@ import {
   getTelegramBotToken,
   getTelegramConfigStatus,
   sendTelegramDocument,
+  sendTelegramLocation,
   sendTelegramMessage,
 } from '@/lib/telegram';
+import {
+  GOOGLE_MAPS_URL,
+  VENUE_ADDRESS,
+  VENUE_LATITUDE,
+  VENUE_LONGITUDE,
+  VENUE_NAME,
+  YANDEX_MAPS_URL,
+} from '@/lib/venue';
 
 export const runtime = 'nodejs';
 
@@ -84,6 +93,27 @@ export async function POST(req: NextRequest) {
       );
 
       if (telegramResult.ok) {
+        const locationResult = await sendTelegramLocation(
+          botToken,
+          chatId,
+          VENUE_LATITUDE,
+          VENUE_LONGITUDE
+        );
+
+        if (!locationResult.ok) {
+          console.error('Telegram sendLocation failed:', locationResult.status, locationResult.body);
+        }
+
+        const mapLinksResult = await sendTelegramMessage(
+          botToken,
+          chatId,
+          `To'yxona manzili:\n${VENUE_NAME}\n${VENUE_ADDRESS}\n\nGoogle Maps: ${GOOGLE_MAPS_URL}\nYandex Navigator: ${YANDEX_MAPS_URL}`
+        );
+
+        if (!mapLinksResult.ok) {
+          console.error('Telegram venue links failed:', mapLinksResult.status, mapLinksResult.body);
+        }
+
         return NextResponse.json({ ok: true });
       }
 

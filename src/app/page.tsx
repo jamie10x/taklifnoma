@@ -4,6 +4,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Image from 'next/image';
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
+import {
+  GOOGLE_DIRECTIONS_URL,
+  GOOGLE_MAPS_EMBED_URL,
+  GOOGLE_MAPS_URL,
+  YANDEX_DIRECTIONS_URL,
+} from "@/lib/venue";
 
 const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "taklifnomaa_bot";
 
@@ -614,7 +620,7 @@ export default function Home() {
                 <div className="w-full max-w-sm mx-auto space-y-3">
                   <div className="h-64 border border-gold/20 bg-cream/50 rounded overflow-hidden shadow-inner relative group">
                     <iframe
-                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3011.838507361817!2d71.8921803765636!3d40.93091497136087!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDU1JzUxLjMiTiA3McKwNTMnMzEuOCJF!5e0!3m2!1suz!2s!4v1715490000000!5m2!1suz!2s"
+                      src={GOOGLE_MAPS_EMBED_URL}
                       width="100%"
                       height="100%"
                       style={{ border: 0 }}
@@ -627,7 +633,7 @@ export default function Home() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <a
-                      href="https://www.google.com/maps/dir/?api=1&destination=40.930915,71.894369"
+                      href={GOOGLE_DIRECTIONS_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-white/80 hover:bg-white text-gold px-4 py-3 rounded-full shadow-sm border border-gold/20 transition-all font-medium uppercase tracking-[0.12em] text-[10px] sm:text-[11px]"
@@ -635,7 +641,7 @@ export default function Home() {
                       Google orqali borish
                     </a>
                     <a
-                      href="https://yandex.com/maps/?rtext=~40.930915,71.894369&rtt=auto"
+                      href={YANDEX_DIRECTIONS_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-white/80 hover:bg-white text-gold px-4 py-3 rounded-full shadow-sm border border-gold/20 transition-all font-medium uppercase tracking-[0.12em] text-[10px] sm:text-[11px]"
@@ -643,7 +649,7 @@ export default function Home() {
                       Yandex orqali borish
                     </a>
                     <a
-                      href="https://www.google.com/maps/search/?api=1&query=40.930915,71.894369"
+                      href={GOOGLE_MAPS_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-white/80 hover:bg-white text-gold px-4 py-3 rounded-full shadow-sm border border-gold/20 transition-all font-medium uppercase tracking-[0.12em] text-[10px] sm:text-[11px]"

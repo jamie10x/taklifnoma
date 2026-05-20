@@ -63,3 +63,29 @@ export async function sendTelegramDocument(
   const body = await response.text().catch(() => '');
   return { ok: false, status: response.status, body };
 }
+
+export async function sendTelegramLocation(
+  botToken: string,
+  chatId: number | string,
+  latitude: number,
+  longitude: number
+) {
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendLocation`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      chat_id: chatId,
+      latitude,
+      longitude,
+    }),
+  });
+
+  if (response.ok) {
+    return { ok: true, status: response.status, body: '' };
+  }
+
+  const body = await response.text().catch(() => '');
+  return { ok: false, status: response.status, body };
+}

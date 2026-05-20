@@ -92,15 +92,31 @@ Create `.env.local` in the project root:
 ```bash
 cat > .env.local <<'EOF'
 TELEGRAM_BOT_TOKEN=your_bot_token_here
-CHAT_ID=your_telegram_chat_id_here
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=your_bot_username_without_at_symbol
+TELEGRAM_ADMIN_CHAT_ID=your_telegram_group_or_admin_chat_id
 EOF
 chmod 600 .env.local
 ```
 
 Environment variables used by the app:
 
-- `TELEGRAM_BOT_TOKEN` — sends RSVP notifications to Telegram
-- `CHAT_ID` — target Telegram chat or channel ID
+- `TELEGRAM_BOT_TOKEN` — sends RSVP notifications and guest PDF documents through Telegram
+- `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` — bot username used in the public deep link, without `@`
+- `TELEGRAM_ADMIN_CHAT_ID` — target Telegram group/admin chat ID for RSVP notifications
+
+The app also supports legacy `CHAT_ID` and `TELEGRAM_CHAT_ID`, but `TELEGRAM_ADMIN_CHAT_ID` is preferred.
+
+After the app is deployed to a public HTTPS domain, set the Telegram webhook:
+
+```bash
+set -a
+source .env.local
+set +a
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=https://your-domain.com/api/webhook/telegram"
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+```
+
+The `getWebhookInfo` response must show your `/api/webhook/telegram` URL. Telegram cannot send webhooks to `localhost`.
 
 If you add more variables later, keep them here as well.
 
@@ -418,4 +434,3 @@ Also verify the bot token and chat ID in Telegram.
 - Use HTTPS only in production.
 - Keep your `.env.local` private and never commit it.
 - If you later move to a different process manager, the Nginx part stays the same.
-

@@ -1,13 +1,14 @@
 # Taklifnoma
 
-An elegant digital wedding invitation and RSVP system built with Next.js. This application allows guests to view event details, RSVP for the wedding, and download/share a personalized invitation in both PNG and PDF formats.
+An elegant digital wedding invitation and RSVP system built with Next.js. This application allows guests to view event details, RSVP for the wedding, preview their personalized invitation, and download/share a personalized PDF.
 
 ## 🌟 Overview
 
 - **Interactive UI**: Luxurious, animated envelope opening sequence using `framer-motion`.
-- **Personalized Invitations**: Automatically generates custom invitation images (PNG) and documents (PDF) with the guest's name.
+- **Personalized Invitations**: Shows a personalized invitation preview and generates PDF documents with the guest's name.
 - **RSVP System**: Integrated RSVP form with automated notifications.
 - **Real-time Notifications**: Sends RSVP details to a Telegram chat via a bot.
+- **Telegram Delivery**: Sends each guest their personalized PDF through a Telegram bot deep link.
 - **Countdown Timer**: Displays the time remaining until the main event.
 
 ## 🛠 Tech Stack
@@ -17,7 +18,6 @@ An elegant digital wedding invitation and RSVP system built with Next.js. This a
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **PDF Generation**: [pdf-lib](https://pdf-lib.js.org/)
-- **Image Generation**: [html-to-image](https://github.com/bubkoo/html-to-image)
 - **Package Manager**: [Bun](https://bun.sh/) (indicated by `bun.lock`)
 
 ## 📋 Requirements
@@ -47,7 +47,14 @@ Create a `.env.local` file in the root directory and add the following:
 
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token_here
-CHAT_ID=your_telegram_chat_id_here
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=your_bot_username_without_at_symbol
+TELEGRAM_ADMIN_CHAT_ID=your_telegram_group_or_admin_chat_id
+```
+
+After deploying to a public HTTPS domain, register the Telegram webhook:
+
+```bash
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=https://your-domain.com/api/webhook/telegram"
 ```
 
 ### 4. Run the development server
@@ -96,7 +103,7 @@ Deploy helper files included in this repo:
 
 ```text
 ├── public/                # Static assets (images, PDF templates)
-│   ├── taklifnoma.jpg     # Image template for PNG generation
+│   ├── taklifnoma.jpg     # Image template for website preview
 │   └── taklifnoma.pdf     # PDF template for document generation
 ├── src/
 │   ├── app/               # Next.js App Router
@@ -104,6 +111,7 @@ Deploy helper files included in this repo:
 │   │   ├── globals.css    # Global styles and Tailwind imports
 │   │   ├── layout.tsx     # Root layout
 │   │   └── page.tsx       # Main invitation page
+│   ├── lib/               # Shared PDF and Telegram helpers
 │   └── components/        # Reusable React components
 │       └── GlassCard.tsx  # Styled container component
 ├── next.config.mjs        # Next.js configuration

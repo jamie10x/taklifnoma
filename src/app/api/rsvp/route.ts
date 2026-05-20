@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { readFile } from 'fs/promises';
-import path from 'path';
+import {
+  copyBytesToArrayBuffer,
+  createInvitationPdfBytes,
+  getSafeInvitationFileName,
+  normalizeFirstName,
+} from '@/lib/invitationPdf';
+import {
+  getTelegramAdminChatId,
+  getTelegramBotToken,
+  getTelegramConfigStatus,
+  sendTelegramMessage,
+} from '@/lib/telegram';
+
+export const runtime = 'nodejs';
 
 function normalizeAttendance(value: unknown): 'yes' | 'no' | null {
   if (value === 'yes' || value === 'no') return value;
   return null;
-}
-
-function normalizeFirstName(value: unknown): string {
-  if (typeof value !== 'string') return '';
-  return value.trim().replace(/\s+/g, ' ');
 }
 
 export async function POST(req: NextRequest) {
@@ -26,74 +32,37 @@ export async function POST(req: NextRequest) {
 
     // Send Telegram notification unless this is a regeneration request.
     if (!isRegenerate) {
-      const botToken = process.env.TELEGRAM_BOT_TOKEN;
-      const chatId = process.env.CHAT_ID;
+      const botToken = getTelegramBotToken();
+      const chatId = getTelegramAdminChatId();
 
       if (botToken && chatId) {
         const safeAttendance = attendance === 'yes' ? 'Ha, albatta ✅' : 'Yoq, afsuski ❌';
         const message = `🎉 Yangi RSVP!\n\nIsm: ${firstName}\nQatnashish: ${safeAttendance}`;
 
         try {
-          const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: message,
-            }),
-          });
-          
-          if (!tgRes.ok) {
-            const errorData = await tgRes.json();
-            console.error('Telegram API error details:', errorData);
+          const telegramResult = await sendTelegramMessage(botToken, chatId, message);
+
+          if (!telegramResult.ok) {
+            console.error('RSVP Telegram notification failed:', telegramResult.status, telegramResult.body);
           }
         } catch (err) {
-          console.error('Telegram fetch failed:', err);
+          console.error('RSVP Telegram notification error:', err);
         }
       } else {
-        console.warn('Telegram credentials not found in environment variables.');
+        console.warn('RSVP Telegram notification skipped:', getTelegramConfigStatus());
       }
     }
 
     // Generate PDF if attending.
     if (attendance === 'yes') {
       try {
-        const templatePath = path.join(process.cwd(), 'public', 'taklifnoma.pdf');
-        const existingPdfBytes = await readFile(templatePath);
+        const pdfBytes = await createInvitationPdfBytes(firstName);
 
-        const pdfDoc = await PDFDocument.load(existingPdfBytes);
-        const timesBoldItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
-
-        const pages = pdfDoc.getPages();
-        const firstPage = pages[0];
-        const { width, height } = firstPage.getSize();
-
-        const fontSize = 10;
-        const textWidth = timesBoldItalic.widthOfTextAtSize(firstName, fontSize);
-        const safeFileName = firstName.replace(/[^a-zA-Z0-9\u0400-\u04FF\s-]/g, '').trim().replace(/\s+/g, '_') || 'guest';
-
-        firstPage.drawText(firstName, {
-          x: width / 2 - textWidth / 2,
-          y: height * 0.34,
-          size: fontSize,
-          font: timesBoldItalic,
-          color: rgb(107/255, 17/255, 26/255),
-        });
-
-        const pdfBytes = await pdfDoc.save();
-
-        // Wrap the Uint8Array in a Blob to satisfy BodyInit typing.
-        // Create a fresh ArrayBuffer and copy the bytes to avoid SharedArrayBuffer/ArrayBufferLike typing issues.
-        const arrayBuffer = new ArrayBuffer(pdfBytes.byteLength);
-        new Uint8Array(arrayBuffer).set(pdfBytes);
-        const pdfBlob = new Blob([arrayBuffer]);
-        return new NextResponse(pdfBlob, {
+        return new NextResponse(copyBytesToArrayBuffer(pdfBytes), {
           status: 200,
           headers: {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="taklifnoma-${safeFileName}.pdf"`,
+            'Content-Disposition': `attachment; filename="${getSafeInvitationFileName(firstName)}"`,
           },
         });
       } catch (pdfError) {
@@ -121,38 +90,13 @@ export async function GET(req: NextRequest) {
     }
 
     // Generate personalized PDF (reuse POST logic)
-    const templatePath = path.join(process.cwd(), 'public', 'taklifnoma.pdf');
-    const existingPdfBytes = await readFile(templatePath);
+    const pdfBytes = await createInvitationPdfBytes(firstName);
 
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    const timesBoldItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
-
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
-    const { width, height } = firstPage.getSize();
-
-    const fontSize = 10;
-    const textWidth = timesBoldItalic.widthOfTextAtSize(firstName, fontSize);
-    const safeFileName = firstName.replace(/[^a-zA-Z0-9\u0400-\u04FF\s-]/g, '').trim().replace(/\s+/g, '_') || 'guest';
-
-    firstPage.drawText(firstName, {
-      x: width / 2 - textWidth / 2,
-      y: height * 0.34,
-      size: fontSize,
-      font: timesBoldItalic,
-      color: rgb(107 / 255, 17 / 255, 26 / 255),
-    });
-
-    const pdfBytes = await pdfDoc.save();
-
-    const arrayBuffer = new ArrayBuffer(pdfBytes.byteLength);
-    new Uint8Array(arrayBuffer).set(pdfBytes);
-
-    return new NextResponse(arrayBuffer, {
+    return new NextResponse(copyBytesToArrayBuffer(pdfBytes), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="taklifnoma-${safeFileName}.pdf"`,
+        'Content-Disposition': `inline; filename="${getSafeInvitationFileName(firstName)}"`,
         'Cache-Control': 'public, max-age=60',
       },
     });
@@ -161,4 +105,3 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 });
   }
 }
-

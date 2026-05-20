@@ -80,6 +80,37 @@ function MonogramSeal({ className = "", size = "md" }: { className?: string; siz
   );
 }
 
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M12 15V3" />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.6 10.7l6.8-4.4" />
+      <path d="M8.6 13.3l6.8 4.4" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6L6 18" />
+      <path d="M6 6l12 12" />
+    </svg>
+  );
+}
+
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
@@ -87,6 +118,7 @@ export default function Home() {
   const [attendance, setAttendance] = useState<"yes" | "no" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showInvitationPreview, setShowInvitationPreview] = useState(false);
   const [openingStep, setOpeningStep] = useState<0 | 1 | 2>(0);
 
   const mouseX = useMotionValue(0);
@@ -158,6 +190,14 @@ export default function Home() {
       setHasRsvpd(true);
       const storedFirstName = window.localStorage.getItem('rsvpd_firstName');
       if (storedFirstName) setFirstName(storedFirstName);
+
+      const storedAttendance = window.localStorage.getItem('rsvpd_attendance');
+      if (storedAttendance === 'yes' || storedAttendance === 'no') {
+        setAttendance(storedAttendance);
+      } else if (storedFirstName) {
+        setAttendance('yes');
+        window.localStorage.setItem('rsvpd_attendance', 'yes');
+      }
     }
   }, []);
 
@@ -167,6 +207,17 @@ export default function Home() {
       openTimersRef.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    if (!showInvitationPreview) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowInvitationPreview(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showInvitationPreview]);
 
   // Build a direct URL to the server-generated PDF for sharing/opening in external viewers
   const getShareUrl = () => {
@@ -290,6 +341,7 @@ export default function Home() {
 
       window.localStorage.setItem('has_rsvpd', 'true');
       window.localStorage.setItem('rsvpd_firstName', firstName);
+      window.localStorage.setItem('rsvpd_attendance', attendance);
 
       setHasRsvpd(true);
       setShowModal(true);
@@ -608,6 +660,28 @@ export default function Home() {
 
                     {attendance === 'yes' ? (
                       <div className="flex flex-col space-y-4 pt-4">
+                        <button
+                          onClick={() => setShowInvitationPreview(true)}
+                          type="button"
+                          className="group w-full rounded-2xl border border-gold/30 bg-white/65 p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg"
+                        >
+                          <span className="relative mx-auto block aspect-[800/1131] w-full max-w-[13rem] overflow-hidden rounded-xl border border-gold/20 bg-cream shadow-md">
+                            <Image
+                              src="/taklifnoma.jpg"
+                              alt="Shaxsiy taklifnoma"
+                              fill
+                              sizes="13rem"
+                              className="object-cover"
+                            />
+                            <span className="absolute top-[67.5%] left-0 right-0 z-10 text-center text-[10px] font-serif font-bold italic leading-none text-[#6B111A] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
+                              {firstName}
+                            </span>
+                          </span>
+                          <span className="mt-3 block text-[11px] font-medium uppercase tracking-[0.16em] text-gold">
+                            Taklifnomani ko&apos;rish
+                          </span>
+                        </button>
+
                         <a
                           href={getBotLink()}
                           target="_blank"
@@ -718,6 +792,79 @@ export default function Home() {
                 )}
               </div>
             </GlassCard>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Personalized invitation preview */}
+      <AnimatePresence>
+        {showInvitationPreview && attendance === 'yes' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-charcoal/80 p-4 backdrop-blur-md"
+            onClick={() => setShowInvitationPreview(false)}
+          >
+            <div className="absolute right-4 top-4 z-20 flex gap-2">
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleDownload();
+                }}
+                type="button"
+                aria-label="Taklifnomani yuklab olish"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/90 text-[#6B111A] shadow-lg transition-colors hover:bg-white"
+              >
+                <DownloadIcon />
+              </button>
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleShare();
+                }}
+                type="button"
+                aria-label="Taklifnomani ulashish"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/90 text-[#6B111A] shadow-lg transition-colors hover:bg-white"
+              >
+                <ShareIcon />
+              </button>
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowInvitationPreview(false);
+                }}
+                type="button"
+                aria-label="Yopish"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/90 text-[#6B111A] shadow-lg transition-colors hover:bg-white"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            <motion.div
+              initial={{ scale: 0.96, y: 16 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.96, y: 16 }}
+              transition={{ type: "spring", stiffness: 140, damping: 20 }}
+              className="relative aspect-[800/1131] overflow-hidden rounded-xl bg-cream shadow-2xl"
+              style={{ width: 'min(88vw, calc(82vh * 800 / 1131), 34rem)' }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <Image
+                src="/taklifnoma.jpg"
+                alt="Shaxsiy taklifnoma"
+                fill
+                sizes="(max-width: 640px) 88vw, 34rem"
+                priority
+                className="object-cover"
+              />
+              <div className="absolute top-[67.5%] left-0 right-0 z-10 text-center">
+                <p className="font-serif text-[clamp(1rem,3.5vw,1.65rem)] font-bold italic leading-none text-[#6B111A] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
+                  {firstName}
+                </p>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

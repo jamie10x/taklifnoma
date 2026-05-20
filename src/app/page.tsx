@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 
+const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "YOUR_BOT_USERNAME";
+
 function CountdownTimer({ targetDate }: { targetDate: string }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
@@ -171,6 +173,26 @@ export default function Home() {
     const path = `/api/rsvp?firstName=${encodeURIComponent(firstName)}&attendance=yes`;
     if (typeof window === 'undefined') return path;
     return `${location.origin}${path}`;
+  };
+
+  const getBotLink = () => {
+    const bytes = new TextEncoder().encode(firstName.trim() || 'Mehmon');
+    let binary = '';
+
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+
+    const base64 = typeof btoa === 'function'
+      ? btoa(binary)
+      : Buffer.from(bytes).toString('base64');
+
+    const payload = base64
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/g, '');
+
+    return `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${payload}`;
   };
 
   const openInNewTab = (url: string) => {
@@ -586,6 +608,14 @@ export default function Home() {
 
                     {attendance === 'yes' ? (
                       <div className="flex flex-col space-y-4 pt-4">
+                        <a
+                          href={getBotLink()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full bg-[#229ED9] hover:bg-[#168AC0] text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.12em] uppercase text-xs sm:text-sm font-medium"
+                        >
+                          Taklifnomani Telegram orqali olish
+                        </a>
                         <button
                           onClick={handleShare}
                           type="button"
@@ -719,6 +749,14 @@ export default function Home() {
                 </p>
                 {attendance === 'yes' ? (
                   <div className="space-y-3 mb-6">
+                    <a
+                      href={getBotLink()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full bg-[#229ED9] hover:bg-[#168AC0] text-white py-3 rounded-full uppercase tracking-[0.14em] text-xs font-medium transition-all duration-300 shadow-md"
+                    >
+                      Taklifnomani Telegram orqali olish
+                    </a>
                     <button
                       onClick={handleShare}
                       type="button"

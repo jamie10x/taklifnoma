@@ -110,28 +110,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    const firstName = decodeStartPayload(payload);
-    const pdfBlob = await createInvitationPdf(firstName);
-    const formData = new FormData();
+    try {
+      const firstName = decodeStartPayload(payload);
+      const pdfBlob = await createInvitationPdf(firstName);
+      const formData = new FormData();
 
-    formData.append('chat_id', String(chatId));
-    formData.append('caption', `Tabriklaymiz, ${firstName}! Shaxsiy taklifnomangiz tayyor. Sizni kutamiz!`);
-    const safeFileName = firstName.replace(/[^a-zA-Z0-9\u0400-\u04FF\s-]/g, '').trim().replace(/\s+/g, '_') || 'mehmon';
-    formData.append('document', pdfBlob, `taklifnoma-${safeFileName}.pdf`);
+      formData.append('chat_id', String(chatId));
+      formData.append('caption', `Tabriklaymiz, ${firstName}! Shaxsiy taklifnomangiz tayyor. Sizni kutamiz!`);
+      const safeFileName = firstName.replace(/[^a-zA-Z0-9\u0400-\u04FF\s-]/g, '').trim().replace(/\s+/g, '_') || 'mehmon';
+      formData.append('document', pdfBlob, `taklifnoma-${safeFileName}.pdf`);
 
-    const telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-      method: 'POST',
-      body: formData,
-    });
+      const telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+        method: 'POST',
+        body: formData,
+      });
 
-    if (!telegramResponse.ok) {
+      if (telegramResponse.ok) {
+        return NextResponse.json({ ok: true });
+      }
+
       const errorBody = await telegramResponse.text().catch(() => '');
       console.error('Telegram sendDocument failed:', telegramResponse.status, errorBody);
+    } catch (error) {
+      console.error('Telegram invitation delivery failed:', error);
+    }
+
+    try {
       await sendTelegramMessage(
         botToken,
         chatId,
         "Kechirasiz, taklifnomani yuborishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."
       );
+    } catch (error) {
+      console.error('Telegram fallback error message failed:', error);
     }
 
     return NextResponse.json({ ok: true });

@@ -667,10 +667,11 @@ export default function Home() {
                         >
                           <span className="relative mx-auto block aspect-[800/1131] w-full max-w-[13rem] overflow-hidden rounded-xl border border-gold/20 bg-cream shadow-md">
                             <Image
-                              src="/taklifnoma.jpg"
+                              src="/taklifnoma.svg"
                               alt="Shaxsiy taklifnoma"
                               fill
                               sizes="13rem"
+                              unoptimized
                               className="object-cover"
                             />
                             <span className="absolute top-[67.5%] left-0 right-0 z-10 text-center text-[10px] font-serif font-bold italic leading-none text-[#6B111A] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
@@ -852,11 +853,12 @@ export default function Home() {
               onClick={(event) => event.stopPropagation()}
             >
               <Image
-                src="/taklifnoma.jpg"
+                src="/taklifnoma.svg"
                 alt="Shaxsiy taklifnoma"
                 fill
                 sizes="(max-width: 640px) 88vw, 34rem"
                 priority
+                unoptimized
                 className="object-cover"
               />
               <div className="absolute top-[67.5%] left-0 right-0 z-10 text-center">

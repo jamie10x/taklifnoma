@@ -103,7 +103,8 @@ Deploy helper files included in this repo:
 
 ```text
 ├── public/                # Static assets (images, PDF templates)
-│   ├── taklifnoma.jpg     # Image template for website preview
+│   ├── taklifnoma.svg     # Sharp image template for website preview
+│   ├── taklifnoma.jpg     # Fallback raster invitation asset
 │   └── taklifnoma.pdf     # PDF template for document generation
 ├── src/
 │   ├── app/               # Next.js App Router

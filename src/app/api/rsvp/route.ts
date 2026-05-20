@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       const chatId = getTelegramAdminChatId();
 
       if (botToken && chatId) {
-        const safeAttendance = attendance === 'yes' ? 'Ha, albatta ✅' : 'Yoq, afsuski ❌';
+        const safeAttendance = attendance === 'yes' ? 'Ha, albatta boraman ✅' : 'Yoq, afsuski ❌';
         const message = `🎉 Yangi RSVP!\n\nIsm: ${firstName}\nQatnashish: ${safeAttendance}`;
 
         try {

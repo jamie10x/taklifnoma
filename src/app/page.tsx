@@ -119,6 +119,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showInvitationPreview, setShowInvitationPreview] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [openingStep, setOpeningStep] = useState<0 | 1 | 2>(0);
 
   const mouseX = useMotionValue(0);
@@ -319,8 +320,7 @@ export default function Home() {
 
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitRsvp = async () => {
     if (!attendance) return;
 
     setIsSubmitting(true);
@@ -351,6 +351,13 @@ export default function Home() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!attendance || !firstName.trim()) return;
+    setFirstName((name) => name.trim().replace(/\s+/g, ' '));
+    setShowReviewModal(true);
   };
 
   return (
@@ -565,7 +572,7 @@ export default function Home() {
                 </div>
  
                 <p className="text-charcoal/80 text-base sm:text-lg leading-relaxed font-light max-w-xl mx-auto whitespace-pre-line italic">
-                  LARNING NIKOH TO&apos;YLARI MUNOSABATI BILAN 6-7 IYUN KUNLARI BO&apos;LIB O&apos;TADIGAN &quot;QIZ BAZMIGA&quot; HAMDA UNUTILMAS NIKOH VA BAXT KECHAMIZGA TAKLIF ETAMIZ.{"\n\n"}
+                  LARNING NIKOH TO&apos;YLARI MUNOSABATI BILAN 6-7 IYUN KUNLARI BO&apos;LIB O&apos;TADIGAN &quot; VECHER &quot; HAMDA UNUTILMAS NIKOH VA BAXT KECHAMIZGA TAKLIF ETAMIZ.{"\n\n"}
                   HURMAT VA EHTIROM BILAN
                 </p>
  
@@ -582,7 +589,7 @@ export default function Home() {
 
                 {/* Qiz Bazmi */}
                 <div className="space-y-2">
-                  <p className="text-xs tracking-[0.3em] uppercase text-bronze font-medium">Qiz Bazmi</p>
+                  <p className="text-xs tracking-[0.3em] uppercase text-bronze font-medium">VECHER</p>
                   <p className="text-3xl sm:text-4xl font-serif text-charcoal/90 font-medium tracking-wide">13:00</p>
                   <p className="text-lg sm:text-xl font-medium text-charcoal/80">06.06.2026</p>
                 </div>
@@ -645,10 +652,10 @@ export default function Home() {
                     <p className="text-charcoal/80 mb-8 font-light text-sm sm:text-base max-w-sm mx-auto leading-relaxed">
                       {attendance === 'yes'
                         ? 'Javobingiz qabul qilindi. Taklifnomangizni saqlab oling yoki do‘stlaringiz bilan ulashing.'
-                        : 'Javobingiz qabul qilindi. Sizni bu baxtli kunda ko‘rishdan xursand bo‘lamiz.'}
+                        : 'Javobingiz qabul qilindi. Shaxsiy taklifnomangizni esdalik uchun saqlab olishingiz mumkin.'}
                     </p>
 
-                    {isInAppBrowser && attendance === 'yes' && (
+                    {isInAppBrowser && (
                       <div className="mb-5 rounded-2xl border border-gold/20 bg-white/70 px-4 py-3 text-left shadow-sm">
                         <p className="text-xs sm:text-sm text-charcoal/75 leading-relaxed">
                           <span className="font-semibold text-gold">Telegram browser detected:</span>{' '}
@@ -658,76 +665,70 @@ export default function Home() {
                       </div>
                     )}
 
-                    {attendance === 'yes' ? (
-                      <div className="flex flex-col space-y-4 pt-4">
-                        <button
-                          onClick={() => setShowInvitationPreview(true)}
-                          type="button"
-                          className="group w-full rounded-2xl border border-gold/30 bg-white/65 p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg"
-                        >
-                          <span className="relative mx-auto block aspect-[800/1131] w-full max-w-[13rem] overflow-hidden rounded-xl border border-gold/20 bg-cream shadow-md">
-                            <Image
-                              src="/taklifnoma.svg"
-                              alt="Shaxsiy taklifnoma"
-                              fill
-                              sizes="13rem"
-                              unoptimized
-                              className="object-cover"
-                            />
-                            <span className="absolute top-[67.5%] left-0 right-0 z-10 text-center text-[10px] font-serif font-bold italic leading-none text-[#6B111A] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
-                              {firstName}
-                            </span>
+                    <div className="flex flex-col space-y-4 pt-4">
+                      <button
+                        onClick={() => setShowInvitationPreview(true)}
+                        type="button"
+                        className="group w-full rounded-2xl border border-gold/30 bg-white/65 p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg"
+                      >
+                        <span className="relative mx-auto block aspect-[800/1131] w-full max-w-[13rem] overflow-hidden rounded-xl border border-gold/20 bg-cream shadow-md">
+                          <Image
+                            src="/taklifnoma.svg"
+                            alt="Shaxsiy taklifnoma"
+                            fill
+                            sizes="13rem"
+                            unoptimized
+                            className="object-cover"
+                          />
+                          <span className="absolute top-[67.5%] left-0 right-0 z-10 text-center text-[10px] font-serif font-bold italic leading-none text-[#6B111A] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
+                            {firstName}
                           </span>
-                          <span className="mt-3 block text-[11px] font-medium uppercase tracking-[0.16em] text-gold">
-                            Taklifnomani ko&apos;rish
-                          </span>
-                        </button>
+                        </span>
+                        <span className="mt-3 block text-[11px] font-medium uppercase tracking-[0.16em] text-gold">
+                          Taklifnomani ko&apos;rish
+                        </span>
+                      </button>
 
-                        <a
-                          href={getBotLink()}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full bg-[#229ED9] hover:bg-[#168AC0] text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.12em] uppercase text-xs sm:text-sm font-medium"
-                        >
-                          Taklifnomani Telegram orqali olish
-                        </a>
-                        <button
-                          onClick={handleShare}
-                          type="button"
-                          className="w-full bg-gradient-to-r from-gold to-[#DDBB54] hover:from-bronze hover:to-gold text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
-                        >
-                          Taklifnomani Ulashish
-                        </button>
-                        <button
-                          onClick={handleDownload}
-                          type="button"
-                          className="w-full bg-transparent border border-gold/70 text-gold hover:bg-gold hover:text-white px-10 py-4 rounded-full transition-all duration-300 tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
-                        >
-                          Yuklab Olish
-                        </button>
+                      <a
+                        href={getBotLink()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-[#229ED9] hover:bg-[#168AC0] text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.12em] uppercase text-xs sm:text-sm font-medium"
+                      >
+                        Taklifnomani Telegram orqali olish
+                      </a>
+                      <button
+                        onClick={handleShare}
+                        type="button"
+                        className="w-full bg-gradient-to-r from-gold to-[#DDBB54] hover:from-bronze hover:to-gold text-white px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl shadow-md tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
+                      >
+                        Taklifnomani Ulashish
+                      </button>
+                      <button
+                        onClick={handleDownload}
+                        type="button"
+                        className="w-full bg-transparent border border-gold/70 text-gold hover:bg-gold hover:text-white px-10 py-4 rounded-full transition-all duration-300 tracking-[0.15em] uppercase text-xs sm:text-sm font-medium"
+                      >
+                        Yuklab Olish
+                      </button>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                          <button
-                            onClick={handleOpenExternalBrowser}
-                            type="button"
-                            className="w-full bg-white/70 hover:bg-white border border-gold/25 text-gold px-6 py-3 rounded-full transition-colors duration-300 tracking-[0.12em] uppercase text-[11px] sm:text-xs font-medium"
-                          >
-                            Tashqi brauzerda ochish
-                          </button>
-                          <button
-                            onClick={handleCopyLink}
-                            type="button"
-                            className="w-full bg-white/70 hover:bg-white border border-gold/25 text-gold px-6 py-3 rounded-full transition-colors duration-300 tracking-[0.12em] uppercase text-[11px] sm:text-xs font-medium"
-                          >
-                            Linkni nusxalash
-                          </button>
-                        </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <button
+                          onClick={handleOpenExternalBrowser}
+                          type="button"
+                          className="w-full bg-white/70 hover:bg-white border border-gold/25 text-gold px-6 py-3 rounded-full transition-colors duration-300 tracking-[0.12em] uppercase text-[11px] sm:text-xs font-medium"
+                        >
+                          Tashqi brauzerda ochish
+                        </button>
+                        <button
+                          onClick={handleCopyLink}
+                          type="button"
+                          className="w-full bg-white/70 hover:bg-white border border-gold/25 text-gold px-6 py-3 rounded-full transition-colors duration-300 tracking-[0.12em] uppercase text-[11px] sm:text-xs font-medium"
+                        >
+                          Linkni nusxalash
+                        </button>
                       </div>
-                    ) : (
-                      <p className="text-xs tracking-[0.25em] uppercase text-bronze/70 font-medium">
-                        Sizga samimiy tilaklarimizni yo‘llaymiz
-                      </p>
-                    )}
+                    </div>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-8">
@@ -740,7 +741,7 @@ export default function Home() {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required
-                        className="w-full bg-transparent border-0 border-b border-gold/50 focus:border-gold focus:ring-0 px-0 py-2 text-charcoal placeholder-charcoal/40 outline-none transition-colors"
+                        className="w-full bg-transparent border-0 border-b border-gold/50 focus:border-gold focus:ring-0 px-0 py-2 text-center text-charcoal placeholder:text-center placeholder-charcoal/40 outline-none transition-colors"
                       />
                     </div>
 
@@ -758,7 +759,7 @@ export default function Home() {
                           onChange={() => setAttendance('yes')}
                           required
                         />
-                        <span className="text-charcoal/80 text-sm">Ha, albatta</span>
+                        <span className="text-charcoal/80 text-sm">Ha, albatta boraman</span>
                       </label>
 
                       <label className="flex items-center space-x-3 cursor-pointer group">
@@ -786,7 +787,7 @@ export default function Home() {
                       {isSubmitting ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                       ) : (
-                        "Tasdiqlash va Olish"
+                        "Maxsus taklifnomani olish"
                       )}
                     </button>
                   </form>
@@ -797,9 +798,70 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* RSVP review modal */}
+      <AnimatePresence>
+        {showReviewModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 18 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.92, y: 18 }}
+              className="w-full max-w-sm overflow-hidden rounded-[1.75rem] border border-gold/25 bg-gradient-to-br from-[#FFFDF8] via-[#FDF6E9] to-[#F7EED8] p-8 text-center shadow-[0_30px_90px_-30px_rgba(91,64,15,0.45)]"
+            >
+              <div className="w-20 h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent mx-auto mb-6"></div>
+              <h3 className="text-2xl font-serif text-gold mb-3 tracking-wide">Ma&apos;lumotlarni tekshiring</h3>
+              <p className="text-charcoal/75 text-sm leading-relaxed mb-6">
+                Taklifnomada ismingiz aynan quyidagicha yoziladi. Xato bo&apos;lsa, o&apos;zgartirishingiz mumkin.
+              </p>
+
+              <div className="rounded-2xl border border-gold/20 bg-white/65 px-4 py-5 mb-6 space-y-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-bronze/70 mb-1">Ism</p>
+                  <p className="font-serif text-2xl font-bold italic text-[#6B111A]">{firstName}</p>
+                </div>
+                <div className="w-16 h-[1px] bg-gold/30 mx-auto"></div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-bronze/70 mb-1">Javob</p>
+                  <p className="text-charcoal/80 text-sm">
+                    {attendance === 'yes' ? 'Ha, albatta boraman' : 'Afsuski, qatnasha olmayman'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setShowReviewModal(false);
+                    void submitRsvp();
+                  }}
+                  disabled={isSubmitting}
+                  type="button"
+                  className="w-full bg-gold hover:bg-bronze text-white py-3 rounded-full uppercase tracking-[0.16em] text-xs font-medium transition-all duration-300 shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Yuborilmoqda...' : 'Tasdiqlayman'}
+                </button>
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  disabled={isSubmitting}
+                  type="button"
+                  className="w-full bg-white/60 hover:bg-white text-gold border border-gold/30 py-3 rounded-full uppercase tracking-[0.16em] text-xs font-medium transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  O&apos;zgartirish
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Personalized invitation preview */}
       <AnimatePresence>
-        {showInvitationPreview && attendance === 'yes' && (
+        {showInvitationPreview && hasRsvpd && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -896,31 +958,31 @@ export default function Home() {
                 <p className="text-charcoal/80 mb-8 font-light leading-relaxed">
                   Javobingiz qabul qilindi. Sizni kutib qolamiz!
                 </p>
-                {attendance === 'yes' ? (
-                  <div className="space-y-3 mb-6">
-                    <a
-                      href={getBotLink()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full bg-[#229ED9] hover:bg-[#168AC0] text-white py-3 rounded-full uppercase tracking-[0.14em] text-xs font-medium transition-all duration-300 shadow-md"
-                    >
-                      Taklifnomani Telegram orqali olish
-                    </a>
-                    <button
-                      onClick={handleShare}
-                      type="button"
-                      className="w-full bg-gradient-to-r from-gold to-[#DDBB54] hover:from-bronze hover:to-gold text-white py-3 rounded-full uppercase tracking-[0.18em] text-xs font-medium transition-all duration-300 shadow-md"
-                    >
-                      Taklifnomani Ulashish
-                    </button>
-                    <button
-                      onClick={handleDownload}
-                      type="button"
-                      className="w-full bg-white/60 hover:bg-white text-gold border border-gold/30 py-3 rounded-full uppercase tracking-[0.18em] text-xs font-medium transition-all duration-300"
-                    >
-                      Yuklab Olish
-                    </button>
-                  </div>
+                {hasRsvpd ? (
+                <div className="space-y-3 mb-6">
+                  <a
+                    href={getBotLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full bg-[#229ED9] hover:bg-[#168AC0] text-white py-3 rounded-full uppercase tracking-[0.14em] text-xs font-medium transition-all duration-300 shadow-md"
+                  >
+                    Taklifnomani Telegram orqali olish
+                  </a>
+                  <button
+                    onClick={handleShare}
+                    type="button"
+                    className="w-full bg-gradient-to-r from-gold to-[#DDBB54] hover:from-bronze hover:to-gold text-white py-3 rounded-full uppercase tracking-[0.18em] text-xs font-medium transition-all duration-300 shadow-md"
+                  >
+                    Taklifnomani Ulashish
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    type="button"
+                    className="w-full bg-white/60 hover:bg-white text-gold border border-gold/30 py-3 rounded-full uppercase tracking-[0.18em] text-xs font-medium transition-all duration-300"
+                  >
+                    Yuklab Olish
+                  </button>
+                </div>
                 ) : null}
                 <button
                   onClick={() => setShowModal(false)}
